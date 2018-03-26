@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+<head>
+  <title>nxmodeler-demo</title>
+  <link rel="stylesheet" type="text/css" href="lib/jquery-ui/css/base/jquery-ui-1.10.4.custom.css" />
+  <link rel="stylesheet" type="text/css" href="lib/bootstrap/3.3.7/css/bootstrap.css" />
+  <link rel="stylesheet" type="text/css" href="lib/DataTables-Bootstrap3/1.10.16/datatables.css" />
+  <link rel="stylesheet" type="text/css" href="lib/ztree/zTreeStyle/zTreeStyle.css" />
+  <link rel="stylesheet" type="text/css" href="nx-modeler.css" />
+</head>
+
+<body>
+  <div id="modeler"></div>
+
+  <script src="lib/jquery-ui/js/jquery-1.10.2.js"></script>
+  <script src="lib/jquery-ui/js/jquery-ui-1.10.4.custom.js"></script>
+  <script src="lib/jquery-ui-contextmenu-1.18.1/jquery.ui-contextmenu.js"></script>
+  <script src="lib/bootstrap/3.3.7/js/bootstrap.js"></script>
+  <script src="lib/ztree/jquery.ztree.core-3.5.js"></script>
+  <script src="lib/DataTables-Bootstrap3/1.10.16/datatables.js"></script>
+  <script src="lib/jsplumb.js"></script>
+  <!-- <script src="example_model.js"></script> -->
+  <script src="nx-modeler.js"></script>
+  <script>
+    $(function () {
+      $('#modeler').nxmodeler({
+        commiter: {
+          name: 'zhangsan',
+          displayName: '张三'
+        },
+        // model: model2,
+        onSave: function(modelName, model){
+          console.log('modelName: ' + modelName);
+          console.log(JSON.stringify(model, null, 2));
+        }
+      });
+    });
+  </script>
+</body>
+</html>

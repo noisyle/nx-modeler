@@ -1,0 +1,118 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta name="description" content="原网址: http://blog.csdn.net/u013705066/article/details/53740327" />
+  <title>flowchart-demo</title>
+  <link rel="stylesheet" type="text/css" href="lib/jquery-ui/css/base/jquery-ui-1.10.4.custom.css" />
+  <style>
+    * {
+      box-sizing: border-box;
+      padding: 0;
+      margin: 0;
+      list-style: none;
+    }
+
+    .flowchart-demo {
+      position: relative;
+    }
+
+    .flowchart-node {
+      position: absolute;
+      padding: 10px;
+      border: 1px solid #61B7CF;
+      border-radius: 5px;
+    }
+
+    .flowchart-node:hover {
+      border: 1px solid #216477;
+      cursor: pointer;
+    }
+
+    .ui-widget {
+      font-size: .8em;
+    }
+
+    .ui-menu {
+      width: 150px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="flowchart-demo" id="canvas">
+    <div class="flowchart-node" id="LCTNODE1" style="top: 50px; left: 50px;">
+      <strong>发起人</strong>
+    </div>
+    <div class="flowchart-node" id="LCTNODE2" style="top: 50px; left: 250px;">
+      <strong>一级审批人</strong>
+    </div>
+    <div class="flowchart-node" id="LCTNODE3" style="top: 50px; left: 450px;">
+      <strong>二级审批人</strong>
+    </div>
+  </div>
+
+  <script src="lib/jquery-ui/js/jquery-1.10.2.js"></script>
+  <script src="lib/jquery-ui/js/jquery-ui-1.10.4.custom.js"></script>
+  <script src="lib/jquery-ui-contextmenu-1.18.1/jquery.ui-contextmenu.js"></script>
+  <script src="lib/jsplumb.js"></script>
+  <script src="flowchart.js"></script>
+  <script>
+    var data = {
+      node: [
+        { id: 1, type: 'START', remark: '', source: '', target: 'RightMiddle', label: '发起人', style: '' },
+        { id: 2, type: 'APPROVE', remark: '', source: 'LeftMiddle', target: 'RightMiddle', label: '一级审批人', style: '' },
+        { id: 3, type: 'END', remark: '', source: 'LeftMiddle', target: '', label: '二级审批人', style: '' }
+      ],
+      line: [
+        { id: 1, node_id: 1, source: 'RightMiddle', next_node_id: 2, target: 'LeftMiddle', label: '' },
+        { id: 2, node_id: 2, source: 'RightMiddle', next_node_id: 3, target: 'LeftMiddle', label: '' }
+      ]
+    };
+
+    $(function () {
+      var flowchart = new Flowchart("canvas", data);
+      flowchart.show();
+
+      $("#canvas").contextmenu({
+        delegate: ".flowchart-node",
+        autoFocus: true,
+        preventContextMenuForPopup: true,
+        preventSelect: true,
+        menu: [
+          {
+            title: "添加", uiIcon: "ui-icon-plus", children: [
+              { title: "串行", cmd: "add_serial" },
+              { title: "并行", cmd: "add_parallel" },
+              { title: "会签", cmd: "add_vote" }
+            ]
+          },
+          { title: "编辑", cmd: "edit", uiIcon: "ui-icon-pencil" },
+          { title: "----" },
+          { title: "删除", cmd: "delete", uiIcon: "ui-icon-trash" }
+        ],
+        // Handle menu selection to implement a fake-clipboard
+        select: function (event, ui) {
+          var $target = ui.target;
+          switch (ui.cmd) {
+            case "add_serial":
+              alert("添加串行节点");
+              break
+            case "add_parallel":
+              alert("添加并行节点");
+              break
+            case "add_vote":
+              alert("添加会签节点");
+              break
+            case "delete":
+              alert("删除节点");
+              break
+          }
+          alert("select " + ui.cmd + " on " + $target.text());
+        }
+      });
+    });
+  </script>
+</body>
+
+</html>
