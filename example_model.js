@@ -42,8 +42,9 @@ var model1 = {
     {
       "resourceId": "sid-ECEB317C-385A-4163-A588-80BFBF5FF684",
       "properties": {
-        "name": "01",
-        "displayName": "李亮",
+        "formkeydefinition": "mcDiyForm01",
+        "assignee": "01",
+        "name": "李亮",
         "isCommiter": true
       },
       "stencil": {
@@ -163,9 +164,10 @@ var model2 = {
     {
       "resourceId": "sid-ECEB317C-385A-4163-A588-80BFBF5FF684",
       "properties": {
+        "formkeydefinition": "mcDiyForm01",
         "isCommiter": true,
-        "name": "001",
-        "displayName": "张三"
+        "assignee": "001",
+        "name": "张三"
       },
       "stencil": {
         "id": "UserTask"
@@ -234,8 +236,9 @@ var model2 = {
     {
       "resourceId": "sid-0AB81B02-CC50-4254-BE57-67926D1BB537",
       "properties": {
-        "name": 829431494967296,
-        "displayName": "郭宏波"
+        "formkeydefinition": "mcDiyForm02",
+        "assignee": 829431494967296,
+        "name": "郭宏波"
       },
       "stencil": {
         "id": "UserTask"
@@ -291,8 +294,9 @@ var model2 = {
     {
       "resourceId": "sid-F6E807A3-2B03-48ED-8DC0-5BA6401E7768",
       "properties": {
-        "name": 1096,
-        "displayName": "李强"
+        "formkeydefinition": "mcDiyForm02",
+        "assignee": 1096,
+        "name": "李强"
       },
       "stencil": {
         "id": "UserTask"
@@ -342,8 +346,9 @@ var model2 = {
     {
       "resourceId": "sid-5460B6E4-6414-4006-A476-B9B35B0571BE",
       "properties": {
-        "name": 1069,
-        "displayName": "李亮"
+        "formkeydefinition": "mcDiyForm02",
+        "assignee": 1069,
+        "name": "李亮"
       },
       "stencil": {
         "id": "UserTask"
@@ -419,8 +424,9 @@ var model2 = {
     {
       "resourceId": "sid-507F862B-F936-48F6-8A6B-A28806F7282E",
       "properties": {
-        "name": 1071,
-        "displayName": "冯宇鹏"
+        "formkeydefinition": "mcDiyForm02",
+        "assignee": 1071,
+        "name": "冯宇鹏"
       },
       "stencil": {
         "id": "UserTask"

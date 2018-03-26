@@ -10,8 +10,8 @@
     if (!opts.model ) {
       opts.model = opts.createModel();
       var commitNode = opts.model.childShapes.filter(function(el){return el.stencil.id === 'UserTask' && el.properties.isCommiter})[0];
+      commitNode.properties.assignee = opts.commiter.assignee;
       commitNode.properties.name = opts.commiter.name;
-      commitNode.properties.displayName = opts.commiter.displayName;
     }
 
     opts.model.childShapes.forEach(function(el, i){
@@ -127,7 +127,7 @@
           var $node = $('<div id="'+config.prefix+node.resourceId+'"></div>');
           $node.append($('<span class="ui-icon '+icon_class+'"></span>'));
           if(node.stencil.id === 'UserTask'){
-            $node.append($('<span class="nxmodeler-label">'+(node.properties.displayName?node.properties.displayName:'')+'</span>'));
+            $node.append($('<span class="nxmodeler-label">'+(node.properties.name?node.properties.name:'')+'</span>'));
           }
           $node.addClass(node_class).css({ 'left': node.bounds.upperLeft.x+'px', 'top': node.bounds.upperLeft.y+'px' });
           $node.data('nxnode', node)
@@ -158,6 +158,7 @@
               var new_node = {
                 "resourceId": that._helper.uuid(),
                 "properties": {
+                  "formkeydefinition": "mcDiyForm02",
                   "name": ""
                 },
                 "stencil": {
@@ -202,6 +203,7 @@
               var new_node = {
                 "resourceId": that._helper.uuid(),
                 "properties": {
+                  "formkeydefinition": "mcDiyForm02",
                   "name": ""
                 },
                 "stencil": {
@@ -602,8 +604,8 @@
     '  </div>'+
     '</div>',
     commiter: {
-      "name": "commiter",
-      "displayName": "发起人"
+      "assignee": "0001",
+      "name": "发起人"
     },
     createModel: function () {
       return {
@@ -650,6 +652,7 @@
           {
             "resourceId": "sid-ECEB317C-385A-4163-A588-80BFBF5FF684",
             "properties": {
+              "formkeydefinition": "mcDiyForm01",
               "isCommiter": true
             },
             "stencil": {
@@ -831,8 +834,8 @@
           if (processName !== '') {
             var timestamp = new Date().getTime();
             data.opts.modelName = processName;
-            data.opts.model.properties.name = data.opts.commiter.displayName + '_' + processName + '_' + timestamp;
-            data.opts.model.properties.process_id = data.opts.commiter.displayName + timestamp;
+            data.opts.model.properties.name = data.opts.commiter.name + '_' + processName + '_' + timestamp;
+            data.opts.model.properties.process_id = data.opts.commiter.name + timestamp;
             data.opts.onSave.apply(that, [processName, data.opts.model]);
             $saveDialog.modal('hide');
           } else {
@@ -842,8 +845,8 @@
         
         var userSelected = function(user) {
             var node = $userpicker.data('cur_node');
-            node.properties.displayName = user.DISPLAYNAME;
-            node.properties.name = user.ID.toString();
+            node.properties.name = user.DISPLAYNAME;
+            node.properties.assignee = user.ID.toString();
             data.render();
         };
 
