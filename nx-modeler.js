@@ -127,7 +127,7 @@
           var $node = $('<div id="'+config.prefix+node.resourceId+'"></div>');
           $node.append($('<span class="ui-icon '+icon_class+'"></span>'));
           if(node.stencil.id === 'UserTask'){
-            $node.append($('<span class="nxmodeler-label">'+(node.properties.name?node.properties.name:'')+'</span>'));
+            $node.append($('<span class="nxmodeler-usertask-label">'+(node.properties.name?node.properties.name:'')+'</span>'));
           }
           $node.addClass(node_class).css({ 'left': node.bounds.upperLeft.x+'px', 'top': node.bounds.upperLeft.y+'px' });
           $node.data('nxnode', node)
@@ -485,8 +485,8 @@
     model: undefined,
     config: {
       prefix: 'nx_',//对应html里节点的ID前缀
-      distance: {x: 150, y: 100},//对应html里节点之间的间隔
-      node: {w: 38, h: 38},//对应html里节点的宽度和高度
+      distance: {x: 200, y: 100},//对应html里节点之间的间隔
+      node: {w: 60, h: 60},//对应html里节点的宽度和高度
       elementName: 'node',
       editable: false,
       sourceEndpoint: {
