@@ -603,6 +603,21 @@
     '    </div>'+
     '  </div>'+
     '</div>',
+    alert_template:'<div class="modal fade nxmodeler-alert" tabindex="-1" role="dialog">'+
+    '  <div class="modal-dialog" role="document">'+
+    '    <div class="modal-content">'+
+    '      <div class="modal-header">'+
+    '        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>'+
+    '        <h4 class="modal-title">错误</h4>'+
+    '      </div>'+
+    '      <div class="modal-body">'+
+    '        <p class="nxmodeler-alert-message"></p>'+
+    '      </div>'+
+    '      <div class="modal-footer">'+
+    '      </div>'+
+    '    </div>'+
+    '  </div>'+
+    '</div>',
     commiter: {
       "assignee": "0001",
       "name": "发起人"
@@ -728,6 +743,7 @@
 
         var $userpicker = $('.nxmodeler-userpicker');
         var $saveDialog = $('.nxmodeler-save-dialog');
+        var $alert = $('.nxmodeler-alert');
 
         var zTreeObj, table;
         if (!$userpicker.length) {
@@ -735,6 +751,8 @@
           $wrap.append($userpicker);
           $saveDialog = $(opts.save_dialog_template);
           $wrap.append($saveDialog);
+          $alert = $(opts.alert_template);
+          $wrap.append($alert);
 
           // mock部门树
           var ztree_settings = {
@@ -831,16 +849,27 @@
 
         $saveDialog.on('click', '.btn-primary', function(e) {
           var processName = $('.nxmodeler-userpicker-processname', $saveDialog).val();
-          if (processName !== '') {
-            var timestamp = new Date().getTime();
-            data.opts.modelName = processName;
-            data.opts.model.properties.name = data.opts.commiter.name + '_' + processName + '_' + timestamp;
-            data.opts.model.properties.process_id = data.opts.commiter.name + timestamp;
-            data.opts.onSave.apply(that, [processName, data.opts.model]);
-            $saveDialog.modal('hide');
-          } else {
-
+          if (processName === '') {
+            $alert.find('.nxmodeler-alert-message').text('请填写流程名称！');
+            $alert.modal('show');
+            return;
           }
+
+          for (var i in data.opts.model.childShapes) {
+            var el = data.opts.model.childShapes[i];
+            if (el.stencil.id === 'UserTask' && !el.properties.assignee) {
+              $alert.find('.nxmodeler-alert-message').text('所有节点必须指定处理人！');
+              $alert.modal('show');
+              return;
+            }
+          }
+
+          var timestamp = new Date().getTime();
+          data.opts.modelName = processName;
+          data.opts.model.properties.name = data.opts.commiter.name + '_' + processName + '_' + timestamp;
+          data.opts.model.properties.process_id = data.opts.commiter.name + timestamp;
+          data.opts.onSave.apply(that, [processName, data.opts.model]);
+          $saveDialog.modal('hide');
         });
         
         var userSelected = function(user) {
