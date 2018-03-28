@@ -132,10 +132,10 @@
           $node.addClass(node_class).css({ 'left': node.bounds.upperLeft.x+'px', 'top': node.bounds.upperLeft.y+'px' });
           $node.data('nxnode', node)
           $container.append($node);
-
-          $container.css({ 'width': max_x+40+'px', 'height': max_y+40+'px' }); // label的height
         }
       });
+
+      $container.css({ 'width': max_x+40+'px', 'height': max_y+40+'px' }); // label的height
 
       // 添加右键菜单
       $container.contextmenu({
@@ -889,8 +889,8 @@
         
         $('tbody', $userpicker).on('dblclick', 'tr', function (e) {
         	var row = table.row(this).data();
-            userSelected(row);
-            $userpicker.modal('hide');
+          userSelected(row);
+          $userpicker.modal('hide');
         })
 
         $userpicker.on('shown.bs.modal', function(e) {
