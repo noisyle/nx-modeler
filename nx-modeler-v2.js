@@ -43,7 +43,7 @@
     // level层级表示节点位于第几列，用来计算x轴坐标
     this.level = 0;
     // weight权重表示分支子树的宽度（包括子孙），用来计算y轴坐标
-    this.weight = 0;
+    this.weight = 1;
   };
 
   Node.prototype = {
@@ -95,6 +95,9 @@
       $node.append($('<span class="glyphicon '+icon_class+'"></span>'));
       if(this.type === 'UserTask'){
         $node.append($('<span class="nxmodeler-usertask-label">'+(this.name?this.name:'')+'</span>'));
+      }
+      if(this.type !== 'StartNoneEvent' && this.type !== 'EndNoneEvent' && this.outgoing.length === 1){
+        $node.addClass('nxmodeler-node');
       }
       $node.addClass(node_class).css({ 'left': this.x+'px', 'top': this.y+'px' });
       $node.data('nxnode', this)
@@ -254,8 +257,9 @@
       var forkStack = [];
       var curNode = this.root;
       while (true) {
-        console.log('深度优先遍历1, curNode: %O', curNode);
         if (curNode.outgoing.length === 0) {
+          console.log('深度优先遍历1, end节点curNode: ', curNode);
+          console.log('深度优先遍历1, forkStack: ', forkStack);
           // end节点
           if (forkStack.length) {
             // 存在未遍历完的分支节点，跳转到该节点并弹栈
@@ -265,52 +269,88 @@
             break;
           }
         } else if (curNode.outgoing.length === 1) {
+          console.log('深度优先遍历1, 普通节点curNode: ', curNode);
+          console.log('深度优先遍历1, forkStack: ', forkStack);
           // 非分支节点
           curNode = curNode.outgoing[0].target;
         } else {
           // 分支节点
+          console.log('深度优先遍历1, 分支节点curNode: ', curNode);
+          console.log('深度优先遍历1, forkStack: ', forkStack);
           // 如果第一次访问当前节点，将栈中所有分支节点（当前节点的祖先）权重按照当前节点分支数-1进行提升（因为祖先节点已经为当前节点所在分支计了1权重）
           if (!curNode.visited) {
             curNode.weight = curNode.outgoing.length;
             curNode.visited = true;
+            console.log('深度优先遍历1, 初次访问分支节点curNode: ', curNode);
             forkStack.forEach(function(fork){
-              fork.weight += curNode.weight - 1;
+              console.log('深度优先遍历1, 提升fork节点权重: ', fork);
+              fork.weight += (curNode.weight - 1);
             });
           }
           var routes = curNode.outgoing.filter(function(line){return !line.visited;});
           if (routes.length) {
-            // 当前分支节点存在未遍历的分支，压栈
+            // 当前分支节点存在未遍历的分支，压栈，并跳转到该分支下一节点
             var route = routes[0];
             route.visited = true;
-            curNode = route.target;
             forkStack.push(curNode);
+            curNode = route.target;
           } else {
             // 当前分支节点所有分支均遍历过
-            curNode = forkStack.pop();
+            // curNode = forkStack.pop();
+            if (forkStack.length) {
+              // 存在未遍历完的分支节点，跳转到该节点并弹栈
+              curNode = forkStack.pop();
+            } else {
+              // 遍历到end节点，且所有分支都遍历完成，跳出while循环
+              break;
+            }
           }
         }
       }
       // 根据之前统计的分支节点权重计算其各子节点y轴坐标
       var min_y = 0, max_y = 0;
-      forkStack = [];
+      var forkJoinStack = [];
       function computeAxis (curNode) {
-        console.log('深度优先遍历2, curNode: %O', curNode);
-        if (curNode.outgoing.length > 1) {
-          forkStack.push(curNode);
+        console.log('深度优先遍历2, curNode: ', curNode);
+        console.log('深度优先遍历2, forkJoinStack: ', forkJoinStack);
+        if (curNode.outgoing.length > 1 || curNode.incoming.length > 1) {
+          forkJoinStack.push(curNode);
         }
         curNode.outgoing.forEach(function(line, index){
           var nextNode = line.target;
           if (nextNode.incoming.length > 1) {
-            nextNode.y = forkStack[forkStack.length -1].y;
+            // 从栈顶开始查找与当前聚合节点对应的分支节点
+            var jump_count = 0;
+            for (var i = forkJoinStack.length-1; i>0; i--) {
+              var forkOrJoin = forkJoinStack[i];
+              if (forkOrJoin.outgoing.length > 0) {
+                // 分支节点
+                if (jump_count === 0) {
+                  nextNode.y = forkOrJoin.y;
+                  break;
+                } else {
+                  jump_count -= 1;
+                  continue;
+                }
+              } else {
+                // 聚合节点
+                jump_count += 1;
+                continue;
+              }
+            }
+            // nextNode.y = forkJoinStack[forkJoinStack.length -1].y;
+          } else if (curNode.outgoing.length === 1) {
+            nextNode.y = curNode.y;
           } else {
-            nextNode.y = curNode.y + (index - (curNode.outgoing.length - 1) / 2 ) * curNode.weight * defaults.config.distance.y;
+            var range = (curNode.weight - 1) * defaults.config.distance.y;
+            nextNode.y = curNode.y - range / 2 + index * range / (curNode.outgoing.length - 1);
           }
           if (nextNode.y < min_y) {min_y = nextNode.y;}
           if (nextNode.y > max_y) {max_y = nextNode.y;}
           computeAxis(nextNode);
         });
-        if (curNode.outgoing.length > 1) {
-          forkStack.pop();
+        if (curNode.outgoing.length > 1 || curNode.incoming.length > 1) {
+          forkJoinStack.pop();
         }
       }
       computeAxis(this.root);
@@ -761,7 +801,7 @@
       
       // 添加右键菜单
       $el.contextmenu({
-        delegate: ".nxmodeler-usertask",
+        delegate: ".nxmodeler-node",
         autoFocus: true,
         preventContextMenuForPopup: true,
         preventSelect: true,
@@ -772,7 +812,7 @@
           { title: "删除", cmd: "delete", uiIcon: "ui-icon-trash" }
         ],
         select: function (event, ui) {
-          var $target = $(ui.target).hasClass('nxmodeler-usertask') ? $(ui.target) : $(ui.target).closest('.nxmodeler-usertask');
+          var $target = $(ui.target).hasClass('nxmodeler-node') ? $(ui.target) : $(ui.target).closest('.nxmodeler-node');
           var cur_node = $target.data('nxnode');
           console.log(ui.cmd)
           switch (ui.cmd) {
@@ -860,13 +900,13 @@
             case 'add_parallel':
               data.addParallelNodes(action, cur_node, rows.toArray().map(function(row){return {assignee: row.ID, name: row.DISPLAYNAME}}));
               data.render();
-
-              console.log(JSON.stringify(data.toJSON(), null, 2))
               break;
           }
           $userpicker.modal('hide');
         }
       });
+
+      // console.log(JSON.stringify(data.toJSON(), null, 2))
       
     });
     if (internal_return !== undefined)

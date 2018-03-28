@@ -17,6 +17,11 @@
   margin: 40px;
 }
 
+.nxmodeler-node:hover {
+  border: 1px solid #216477;
+  cursor: pointer;
+}
+
 .nxmodeler-eventnode {
   position: absolute;
   width: 60px;
@@ -31,11 +36,6 @@
   height: 60px;
   border: 1px solid #61B7CF;
   border-radius: 5px;
-}
-
-.nxmodeler-usertask:hover {
-  border: 1px solid #216477;
-  cursor: pointer;
 }
 
 .nxmodeler-gateway {
