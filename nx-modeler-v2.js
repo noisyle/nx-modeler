@@ -56,7 +56,7 @@
         'properties': {
           'formkeydefinition': this.type === 'UserTask' ? (this.isCommiter ? 'mcDiyForm01' : 'mcDiyForm02') : '',
           'isCommiter': this.isCommiter,
-          'assignee': this.assignee,
+          'assignee': this.assignee.toString(),
           'name': this.name,
           'gatewayType': this.gatewayType
         },
@@ -138,7 +138,7 @@
         ],
         'dockers': [
           {
-            'x': this.source.x + defaults.config.node.w,
+            'x': this.source.x + defaults.config.node.w, // TODO 兼容Activiti设计器的docker坐标算法
             'y': this.source.y + defaults.config.node.h / 2
           },
           {
@@ -795,12 +795,20 @@
       var $alert = $(opts.alert_template);
       $wrap.append($alert);
 
+      var zTreeObj, table;
       // mock部门树
       var ztree_settings = {
         data: {
           simpleData: {
             enable: true
           } 
+        },
+        callback: {
+          onClick: function (event, treeId, treeNode) {
+            table.clear();
+            table.rows.add(table_data);
+            table.draw();
+          }
         }
       };
       var ztree_data =[
@@ -834,10 +842,23 @@
         { id:234, pId:23, name:"叶子节点234"},
         { id:3, pId:0, name:"父节点3 - 没有子节点", isParent:true}
       ];      
-      var zTreeObj = $.fn.zTree.init($(".nxmodeler-userpicker-tree", $userpicker), ztree_settings, ztree_data);
+      zTreeObj = $.fn.zTree.init($(".nxmodeler-userpicker-tree", $userpicker), ztree_settings, ztree_data);
 
       // mock人员列表
-      var table = $('.nxmodeler-userpicker-table').DataTable({
+      var table_data = [
+        {DISPLAYNAME: "俞新海", USERNAME: "yuxinhai", ID: 1049, PARTYNAME: "信息部-java开发组"},
+        {DISPLAYNAME: "冯宇鹏", USERNAME: "fengyupeng", ID: 1071, PARTYNAME: "信息部-java开发组"},
+        {DISPLAYNAME: "庞泓", USERNAME: "panghong", ID: 1072, PARTYNAME: "信息部-java开发组"},
+        {DISPLAYNAME: "李亮", USERNAME: "liliang", ID: 1069, PARTYNAME: "信息部-java开发组"},
+        {DISPLAYNAME: "李强", USERNAME: "liqiang", ID: 1096, PARTYNAME: "信息部-java开发组"},
+        {DISPLAYNAME: "杜佳鹏", USERNAME: "dujiapeng", ID: 817031254523904, PARTYNAME: "信息部-java开发组"},
+        {DISPLAYNAME: "王哲", USERNAME: "wangzhe", ID: 973876359495680, PARTYNAME: "信息部-java开发组"},
+        {DISPLAYNAME: "王跃", USERNAME: "wangyue", ID: 817031819214848, PARTYNAME: "信息部-java开发组"},
+        {DISPLAYNAME: "郭宏波", USERNAME: "guohongbo", ID: 829431494967296, PARTYNAME: "信息部-java开发组"},
+        {DISPLAYNAME: "马磊", USERNAME: "malei", ID: 1068, PARTYNAME: "信息部-java开发组"},
+        {DISPLAYNAME: "马辰", USERNAME: "machen", ID: 1070, PARTYNAME: "信息部-java开发组"}
+      ];
+      table = $('.nxmodeler-userpicker-table').DataTable({
         language: {url: "lib/DataTables-Bootstrap3/1.10.16/i18n/Chinese.json"},
         select: false,
         paging: false,
@@ -936,19 +957,7 @@
       
       $userpicker.on('shown.bs.modal', function(e) {
         table.clear();
-        table.rows.add([
-          {DISPLAYNAME: "俞新海", USERNAME: "yuxinhai", ID: 1049, PARTYNAME: "信息部-java开发组"},
-          {DISPLAYNAME: "冯宇鹏", USERNAME: "fengyupeng", ID: 1071, PARTYNAME: "信息部-java开发组"},
-          {DISPLAYNAME: "庞泓", USERNAME: "panghong", ID: 1072, PARTYNAME: "信息部-java开发组"},
-          {DISPLAYNAME: "李亮", USERNAME: "liliang", ID: 1069, PARTYNAME: "信息部-java开发组"},
-          {DISPLAYNAME: "李强", USERNAME: "liqiang", ID: 1096, PARTYNAME: "信息部-java开发组"},
-          {DISPLAYNAME: "杜佳鹏", USERNAME: "dujiapeng", ID: 817031254523904, PARTYNAME: "信息部-java开发组"},
-          {DISPLAYNAME: "王哲", USERNAME: "wangzhe", ID: 973876359495680, PARTYNAME: "信息部-java开发组"},
-          {DISPLAYNAME: "王跃", USERNAME: "wangyue", ID: 817031819214848, PARTYNAME: "信息部-java开发组"},
-          {DISPLAYNAME: "郭宏波", USERNAME: "guohongbo", ID: 829431494967296, PARTYNAME: "信息部-java开发组"},
-          {DISPLAYNAME: "马磊", USERNAME: "malei", ID: 1068, PARTYNAME: "信息部-java开发组"},
-          {DISPLAYNAME: "马辰", USERNAME: "machen", ID: 1070, PARTYNAME: "信息部-java开发组"},
-        ]);
+        table.rows.add(table_data);
         table.columns.adjust().draw(); // 初始化datatable时modal是隐藏的，会导致表头宽度不正确，这里重绘datatable
 
         select_table.clear();
@@ -976,17 +985,36 @@
       
       $('.nxmodeler-userpicker-select > tbody', $userpicker).on('click', '.btn-minus', function (e) {
         var _tr = $(this).closest('tr')[0];
-        var row = select_table.row(_tr).data();
+        var index = select_table.row(_tr).index();
         var selected = select_table.rows().data();
-        var index = -1;
-        for (var i=0; i<selected.length; i++) {
-          if (selected[i].ID === row.ID) {
-            index = i;
-            break;
-          }
-        }
         if (index > -1) {
           selected.splice(index, 1);
+          select_table.clear();
+          select_table.rows.add(selected);
+          select_table.columns.adjust().draw();
+        }
+      });
+      
+      $('.nxmodeler-userpicker-select > tbody', $userpicker).on('click', '.btn-up', function (e) {
+        var _tr = $(this).closest('tr')[0];
+        var index = select_table.row(_tr).index();
+        var selected = select_table.rows().data();
+        if (index > 0) {
+          var row = selected.splice(index, 1)[0];
+          selected.splice(index - 1, 0, row);
+          select_table.clear();
+          select_table.rows.add(selected);
+          select_table.columns.adjust().draw();
+        }
+      });
+      
+      $('.nxmodeler-userpicker-select > tbody', $userpicker).on('click', '.btn-down', function (e) {
+        var _tr = $(this).closest('tr')[0];
+        var index = select_table.row(_tr).index();
+        var selected = select_table.rows().data();
+        if (index < selected.length - 1) {
+          var row = selected.splice(index, 1)[0];
+          selected.splice(index + 1, 0, row);
           select_table.clear();
           select_table.rows.add(selected);
           select_table.columns.adjust().draw();
@@ -1035,8 +1063,8 @@
         }
 
         var timestamp = new Date().getTime();
-        data.name = data.opt.commiter.name + '_' + processName + '_' + timestamp;
-        data.process_id = data.opt.commiter.name + timestamp;
+        data.name = processName;
+        data.process_id = data.opt.commiter.name + '_' + timestamp;
         data.opt.onSave.apply(that, [processName, data.toJSON()]);
         $saveDialog.modal('hide');
       });
