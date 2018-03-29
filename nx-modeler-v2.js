@@ -825,7 +825,7 @@
         data: {
           simpleData: {
             enable: true
-          } 
+          }
         },
         callback: {
           onClick: function (event, treeId, treeNode) {
@@ -950,7 +950,7 @@
         select: function (event, ui) {
           var $target = $(ui.target).hasClass('nxmodeler-node') ? $(ui.target) : $(ui.target).closest('.nxmodeler-node');
           var cur_node = $target.data('nxnode');
-          console.log(ui, event);
+          console.log(ui.cmd);
           switch (ui.cmd) {
             case "add_serial":
               $userpicker.find('.modal-title').text('追加串行节点');
