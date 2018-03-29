@@ -646,12 +646,6 @@
           outlineStroke: "white",
           outlineWidth: 2
         },
-        connectorHoverStyle: {
-          strokeWidth: 3,
-          stroke: "#216477",
-          outlineWidth: 2,
-          outlineStroke: "white"
-        },
         maxConnections: 999,
       },
       targetEndpoint: {
