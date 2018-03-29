@@ -254,88 +254,76 @@
       });
 
       // 深度优先遍历，统计分支节点权重
-      var forkStack = [];
-      var curNode = this.root;
-      while (true) {
-        if (curNode.outgoing.length === 0) {
-          console.log('深度优先遍历1, end节点curNode: ', curNode);
-          console.log('深度优先遍历1, forkStack: ', forkStack);
-          // end节点
-          if (forkStack.length) {
-            // 存在未遍历完的分支节点，跳转到该节点并弹栈
-            curNode = forkStack.pop();
-          } else {
-            // 遍历到end节点，且所有分支都遍历完成，跳出while循环
-            break;
-          }
-        } else if (curNode.outgoing.length === 1) {
-          console.log('深度优先遍历1, 普通节点curNode: ', curNode);
-          console.log('深度优先遍历1, forkStack: ', forkStack);
-          // 非分支节点
-          curNode = curNode.outgoing[0].target;
-        } else {
+      var forkJoinStack = [];
+      function computeWeight (curNode, index) {
+        index = index || 0;
+        console.log('深度优先遍历1, curNode: ', curNode);
+        console.log('深度优先遍历1, forkJoinStack: ', forkJoinStack);
+        if (curNode.outgoing.length > 1) {
           // 分支节点
-          console.log('深度优先遍历1, 分支节点curNode: ', curNode);
-          console.log('深度优先遍历1, forkStack: ', forkStack);
-          // 如果第一次访问当前节点，将栈中所有分支节点（当前节点的祖先）权重按照当前节点分支数-1进行提升（因为祖先节点已经为当前节点所在分支计了1权重）
-          if (!curNode.visited) {
-            curNode.weight = curNode.outgoing.length;
-            curNode.visited = true;
-            console.log('深度优先遍历1, 初次访问分支节点curNode: ', curNode);
-            forkStack.forEach(function(fork){
-              console.log('深度优先遍历1, 提升fork节点权重: ', fork);
-              fork.weight += (curNode.weight - 1);
-            });
-          }
-          var routes = curNode.outgoing.filter(function(line){return !line.visited;});
-          if (routes.length) {
-            // 当前分支节点存在未遍历的分支，压栈，并跳转到该分支下一节点
-            var route = routes[0];
-            route.visited = true;
-            forkStack.push(curNode);
-            curNode = route.target;
-          } else {
-            // 当前分支节点所有分支均遍历过
-            // curNode = forkStack.pop();
-            if (forkStack.length) {
-              // 存在未遍历完的分支节点，跳转到该节点并弹栈
-              curNode = forkStack.pop();
+          curNode.weight = curNode.outgoing.length;
+          console.log('深度优先遍历1, 计算权重curNode: ', curNode);
+          // 从栈顶开始进行回溯，对祖先分支节点进行提权
+          var jump_count = 0;
+          for (var i = forkJoinStack.length - 1; i >= 0; i--) {
+            var forkOrJoin = forkJoinStack[i];
+            console.log('深度优先遍历1, 回溯forkOrJoin: ', forkOrJoin);
+            if (forkOrJoin.outgoing.length > 1) {
+              // 分支节点
+              if (jump_count === 0) {
+                // 将栈中尚未闭合的分支节点（当前节点的祖先）权重按照当前节点权重-1进行提升（因为祖先节点已经为当前节点所在分支计了1权重）
+                forkOrJoin.weight += (curNode.weight - 1);
+                console.log('深度优先遍历1, 提权forkOrJoin: ', forkOrJoin);
+                break;
+              } else {
+                jump_count -= 1;
+              }
             } else {
-              // 遍历到end节点，且所有分支都遍历完成，跳出while循环
-              break;
+              // 聚合节点
+              jump_count += 1;
             }
           }
         }
-      }
-      // 根据之前统计的分支节点权重计算其各子节点y轴坐标
-      var min_y = 0, max_y = 0;
-      var forkJoinStack = [];
-      function computeAxis (curNode) {
-        console.log('深度优先遍历2, curNode: ', curNode);
-        console.log('深度优先遍历2, forkJoinStack: ', forkJoinStack);
         if (curNode.outgoing.length > 1 || curNode.incoming.length > 1) {
           forkJoinStack.push(curNode);
         }
+        curNode.outgoing.forEach(function(line, index){
+          computeWeight(line.target, index);
+        });
+        if (curNode.outgoing.length > 1 || curNode.incoming.length > 1) {
+          forkJoinStack.pop();
+        }
+      }
+      computeWeight(this.root);
+
+      // 根据之前统计的分支节点权重计算其各子节点y轴坐标
+      var min_y = 0, max_y = 0;
+      forkJoinStack = [];
+      function computeAxis (curNode) {
+        console.log('深度优先遍历2, curNode: ', curNode);
+        if (curNode.outgoing.length > 1 || curNode.incoming.length > 1) {
+          forkJoinStack.push(curNode);
+        }
+        console.log('深度优先遍历2, forkJoinStack: ', forkJoinStack);
         curNode.outgoing.forEach(function(line, index){
           var nextNode = line.target;
           if (nextNode.incoming.length > 1) {
             // 从栈顶开始查找与当前聚合节点对应的分支节点
             var jump_count = 0;
-            for (var i = forkJoinStack.length-1; i>0; i--) {
+            for (var i = forkJoinStack.length - 1; i >= 0; i--) {
               var forkOrJoin = forkJoinStack[i];
-              if (forkOrJoin.outgoing.length > 0) {
+              console.log('深度优先遍历2, 回溯forkOrJoin: ', forkOrJoin);
+              if (forkOrJoin.outgoing.length > 1) {
                 // 分支节点
                 if (jump_count === 0) {
                   nextNode.y = forkOrJoin.y;
                   break;
                 } else {
                   jump_count -= 1;
-                  continue;
                 }
               } else {
                 // 聚合节点
                 jump_count += 1;
-                continue;
               }
             }
             // nextNode.y = forkJoinStack[forkJoinStack.length -1].y;
@@ -371,14 +359,12 @@
 
       this.nodes.forEach(function(node){
         if(node.type !== 'EndNoneEvent'){
-          // 画出点
           instance.addEndpoint(config.prefix+node.resourceId, config.sourceEndpoint, {
             anchor: 'RightMiddle',
             uuid: node.resourceId+'-RightMiddle'
           });
         }
         if(node.type !== 'StartNoneEvent'){
-          // 画入点
           instance.addEndpoint(config.prefix+node.resourceId, config.targetEndpoint, {
             anchor: 'LeftMiddle',
             uuid: node.resourceId+'-LeftMiddle'
@@ -427,7 +413,7 @@
       this._addEndpoints();
       this._connect();
     },
-    addSerialNodes: function (action, curNode, nodes) {
+    addSerialNodes: function (curNode, nodes) {
       var curOutgoing = curNode.outgoing[0];
       curNode.outgoing = [];
       var tmp = curNode;
@@ -445,7 +431,7 @@
       curOutgoing.source = tmp;
       tmp.outgoing.push(curOutgoing);
     },
-    addParallelNodes: function (action, curNode, nodes) {
+    addParallelNodes: function (curNode, nodes) {
       var curOutgoing = curNode.outgoing[0];
 
       var forkNode = new Node({type: 'ParallelGateway'});
@@ -477,6 +463,9 @@
         this.lines.push(outgoing);
         this.lineMap[outgoing.resourceId] = outgoing;
       }
+    },
+    deleteNode: function (curNode) {
+
     },
     toJSON: function () {
       var model = {
@@ -535,13 +524,13 @@
           strokeWidth: 1
         },
         isSource: true,
-        connector: ["Straight", {}],
-        // connector: ["Flowchart", {
-        //   stub: [40, 60],
-        //   //gap: 10,
-        //   cornerRadius: 5,//连线的弯曲度
-        //   alwaysRespectStubs: true
-        // }],
+        // connector: ["Straight", {}],
+        connector: ["Flowchart", {
+          stub: [40, 60],
+          //gap: 10,
+          cornerRadius: 5,//连线的弯曲度
+          alwaysRespectStubs: true
+        }],
         connectorStyle: {//流程图的线
           strokeWidth: 2,
           stroke: "#61B7CF",
@@ -823,6 +812,8 @@
               $userpicker.data('cur_node', cur_node).data('action', ui.cmd).modal('show');
               break;
             case "delete":
+              data.deleteNode(cur_node);
+              data.render();
               break;
           }
         }
@@ -894,11 +885,11 @@
           var cur_node = $userpicker.data('cur_node');
           switch (action) {
             case 'add_serial':
-              data.addSerialNodes(action, cur_node, rows.toArray().map(function(row){return {assignee: row.ID, name: row.DISPLAYNAME}}));
+              data.addSerialNodes(cur_node, rows.toArray().map(function(row){return {assignee: row.ID, name: row.DISPLAYNAME}}));
               data.render();
               break;
             case 'add_parallel':
-              data.addParallelNodes(action, cur_node, rows.toArray().map(function(row){return {assignee: row.ID, name: row.DISPLAYNAME}}));
+              data.addParallelNodes(cur_node, rows.toArray().map(function(row){return {assignee: row.ID, name: row.DISPLAYNAME}}));
               data.render();
               break;
           }
