@@ -1061,7 +1061,12 @@
               data.render();
               break;
             case 'add_parallel':
-              data.addParallelNodes(cur_node, rows.toArray().map(function(row){return {assignee: row.ID, name: row.DISPLAYNAME}}));
+              if (rows.length ===1) {
+                // 追加并行但只选择一个节点时，当作串行处理
+                data.addSerialNodes(cur_node, rows.toArray().map(function(row){return {assignee: row.ID, name: row.DISPLAYNAME}}));
+              } else {
+                data.addParallelNodes(cur_node, rows.toArray().map(function(row){return {assignee: row.ID, name: row.DISPLAYNAME}}));
+              }
               data.render();
               break;
           }
