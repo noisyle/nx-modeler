@@ -40,12 +40,6 @@
     this.gatewayType = opt.gatewayType ? opt.gatewayType : '';
     this.incoming = opt.incoming ? opt.incoming : [];
     this.outgoing = opt.outgoing ? opt.outgoing : [];
-    this.x = 0;
-    this.y = 0;
-    // level层级表示节点位于第几列，用来计算x轴坐标
-    this.level = 0;
-    // weight权重表示分支子树的宽度（包括子孙），用来计算y轴坐标
-    this.weight = 1;
   };
 
   Node.prototype = {
@@ -233,9 +227,10 @@
       var that = this;
       var $el = $(this.el);
 
-      // 初始化节点坐标、层级和权重
-      this.nodes.forEach(function(node){node.x = 0; node.y = 0; node.level = 0; node.weight = 1; node.visited = false;});
-      this.lines.forEach(function(line){line.visited = false;});
+      // 初始化节点坐标、层级
+      this.nodes.forEach(function(node){node.x = 0; node.y = 0; node.level = 0; node.visited = false;});
+      // 初始化连线的权重
+      this.lines.forEach(function(line){line.weight = 1; line.visited = false;});
 
       // 广度优先遍历，求节点到根的最大深度
       var nodeStack = [this.root];
@@ -256,27 +251,20 @@
         if (node.x > max_x) {max_x = node.x;}
       });
 
-      // 深度优先遍历，统计分支节点权重
-      var forkJoinStack = [];
-      function computeWeight (curNode, index) {
-        index = index || 0;
-        console.log('深度优先遍历1, curNode: ', curNode);
-        console.log('深度优先遍历1, forkJoinStack: ', forkJoinStack);
-        if (curNode.outgoing.length > 1) {
+      // 深度优先遍历，统计分支权重
+      var pathStack = [];
+      function computeWeight (curNode) {
+        if (curNode.gatewayType === 'fork') {
           // 分支节点
-          curNode.weight = curNode.outgoing.length;
-          console.log('深度优先遍历1, 计算权重curNode: ', curNode);
-          // 从栈顶开始进行回溯，对祖先分支节点进行提权
+          // 从栈顶开始进行回溯，对祖先分支进行提权
           var jump_count = 0;
-          for (var i = forkJoinStack.length - 1; i >= 0; i--) {
-            var forkOrJoin = forkJoinStack[i];
-            console.log('深度优先遍历1, 回溯forkOrJoin: ', forkOrJoin);
-            if (forkOrJoin.outgoing.length > 1) {
+          for (var i = pathStack.length - 1; i >= 0; i--) {
+            var path = pathStack[i];
+            if (path.source.gatewayType === 'fork') {
               // 分支节点
               if (jump_count === 0) {
-                // 将栈中尚未闭合的分支节点（当前节点的祖先）权重按照当前节点权重-1进行提升（因为祖先节点已经为当前节点所在分支计了1权重）
-                forkOrJoin.weight += (curNode.weight - 1);
-                console.log('深度优先遍历1, 提权forkOrJoin: ', forkOrJoin);
+                // 将栈中尚未闭合的分支（当前节点的祖先）权重按照当前节点权重-1进行提升（因为祖先节点已经为当前节点所在分支计了1权重）
+                path.weight += (curNode.outgoing.length - 1);
                 break;
               } else {
                 jump_count -= 1;
@@ -287,35 +275,37 @@
             }
           }
         }
-        if (curNode.outgoing.length > 1 || curNode.incoming.length > 1) {
-          forkJoinStack.push(curNode);
-        }
-        curNode.outgoing.forEach(function(line, index){
-          computeWeight(line.target, index);
+        curNode.outgoing.forEach(function(line){
+          if (curNode.gatewayType === 'fork' || curNode.gatewayType === 'join') {
+            pathStack.push(line);
+          }
+          computeWeight(line.target);
+          if (curNode.gatewayType === 'fork' || curNode.gatewayType === 'join') {
+            pathStack.pop();
+          }
         });
-        if (curNode.outgoing.length > 1 || curNode.incoming.length > 1) {
-          forkJoinStack.pop();
-        }
       }
       computeWeight(this.root);
 
       // 根据之前统计的分支节点权重计算其各子节点y轴坐标
-      var min_y = 0, max_y = 0;
-      forkJoinStack = [];
+      var min_y = 0, max_y = 0, forkJoinStack = [];
       function computeAxis (curNode) {
-        console.log('深度优先遍历2, curNode: ', curNode);
-        if (curNode.outgoing.length > 1 || curNode.incoming.length > 1) {
+        console.debug('深度优先遍历2, curNode: ', curNode);
+        if (curNode.gatewayType === 'fork' || curNode.gatewayType === 'join') {
           forkJoinStack.push(curNode);
         }
-        console.log('深度优先遍历2, forkJoinStack: ', forkJoinStack);
-        curNode.outgoing.forEach(function(line, index){
+        console.debug('深度优先遍历2, forkJoinStack: ', forkJoinStack);
+        var sum_weight = 0;
+        curNode.outgoing.forEach(function(line){sum_weight += line.weight;});
+        var offset = 0, range = (sum_weight - 1) * that.opt.config.distance.y;
+        curNode.outgoing.forEach(function(line){
           var nextNode = line.target;
-          if (nextNode.incoming.length > 1) {
-            // 从栈顶开始查找与当前聚合节点对应的分支节点
+          if (nextNode.gatewayType === 'join') {
+            // 聚合节点，从栈顶开始查找与当前节点成对的分支节点
             var jump_count = 0;
             for (var i = forkJoinStack.length - 1; i >= 0; i--) {
               var forkOrJoin = forkJoinStack[i];
-              console.log('深度优先遍历2, 回溯forkOrJoin: ', forkOrJoin);
+              console.debug('深度优先遍历2, 回溯forkOrJoin: ', forkOrJoin);
               if (forkOrJoin.outgoing.length > 1) {
                 // 分支节点
                 if (jump_count === 0) {
@@ -329,18 +319,18 @@
                 jump_count += 1;
               }
             }
-            // nextNode.y = forkJoinStack[forkJoinStack.length -1].y;
-          } else if (curNode.outgoing.length === 1) {
+          } else if (curNode.gatewayType !== 'fork') {
             nextNode.y = curNode.y;
           } else {
-            var range = (curNode.weight - 1) * that.opt.config.distance.y;
-            nextNode.y = curNode.y - range / 2 + index * range / (curNode.outgoing.length - 1);
+            console.debug('深度优先遍历2, sum_weight: %s, range: %s, offset: %s', sum_weight, range, offset);
+            nextNode.y = curNode.y + offset - parseInt((1 - line.weight / sum_weight) * range / 2);
+            offset += parseInt(range * line.weight / sum_weight);
           }
           if (nextNode.y < min_y) {min_y = nextNode.y;}
           if (nextNode.y > max_y) {max_y = nextNode.y;}
           computeAxis(nextNode);
         });
-        if (curNode.outgoing.length > 1 || curNode.incoming.length > 1) {
+        if (curNode.gatewayType === 'fork' || curNode.gatewayType === 'join') {
           forkJoinStack.pop();
         }
       }
@@ -630,7 +620,7 @@
     model: undefined,
     config: {
       prefix: 'nx_',//对应html里节点的ID前缀
-      distance: {x: 150, y: 120},//对应html里节点之间的间隔
+      distance: {x: 120, y: 240},//对应html里节点之间的间隔
       node: {w: 60, h: 60},//对应html里节点的宽度和高度
       padding: 40,//对应html里节点的宽度和高度
       task_class: 'nxmodeler-usertask',
@@ -683,8 +673,8 @@
       }
     },
     onSave: function(modelName, model){
-      console.log('modelName: ' + modelName);
-      console.log(JSON.stringify(model, null, 2));
+      console.debug('modelName: ' + modelName);
+      console.debug(JSON.stringify(model, null, 2));
     },
     container_template: '<div class="nxmodeler-container">'+
     '  <nav class="navbar navbar-default">'+
@@ -950,7 +940,7 @@
         select: function (event, ui) {
           var $target = $(ui.target).hasClass('nxmodeler-node') ? $(ui.target) : $(ui.target).closest('.nxmodeler-node');
           var cur_node = $target.data('nxnode');
-          console.log(ui.cmd);
+          console.debug(ui.cmd);
           switch (ui.cmd) {
             case "add_serial":
               $userpicker.find('.modal-title').text('追加串行节点');
