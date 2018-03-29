@@ -679,7 +679,7 @@
     '    <div class="modal-content">'+
     '      <div class="modal-header">'+
     '        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>'+
-    '        <h4 class="modal-title">选择参与者</h4>'+
+    '        <h4 class="modal-title"></h4>'+
     '      </div>'+
     '      <div class="modal-body">'+
     '        <div class="row">'+
@@ -926,17 +926,22 @@
         select: function (event, ui) {
           var $target = $(ui.target).hasClass('nxmodeler-node') ? $(ui.target) : $(ui.target).closest('.nxmodeler-node');
           var cur_node = $target.data('nxnode');
-          console.log(ui.cmd)
+          console.log(ui, event);
           switch (ui.cmd) {
             case "add_serial":
+              $userpicker.find('.modal-title').text('追加串行节点');
               $userpicker.data('cur_node', cur_node).data('action', ui.cmd).modal('show');
               break;
             case "add_parallel":
+              $userpicker.find('.modal-title').text('追加并行节点');
               $userpicker.data('cur_node', cur_node).data('action', ui.cmd).modal('show');
               break;
             case "delete":
               data.deleteNode(cur_node);
               data.render();
+              break;
+            default:
+              $userpicker.find('.modal-title').text('选择参与者');
               break;
           }
         },
