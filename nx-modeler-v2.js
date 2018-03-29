@@ -188,6 +188,8 @@
         if (opt.model.properties.name) this.name = opt.model.properties.name;
       }
 
+      // TODO Node和Line新增了一些属性，下面这段需要修改
+
       opt.model.childShapes.forEach(function(el){
         if (el.stencil.id !== 'SequenceFlow') {
           var node = new Node({type: el.type, isCommiter: el.isCommiter, assignee: el.properties.assignee, name: el.properties.name});
@@ -402,9 +404,25 @@
       var instance = this.instance;
 
       this.lines.forEach(function(line){
+        var anchors = ['Right', 'Left'];
+        if (line.source.gatewayType === 'fork') {
+          if (line.source.y > line.target.y) {
+            anchors[0] = 'Top';
+          } else if (line.source.y < line.target.y) {
+            anchors[0] = 'Bottom';
+          }
+        }
+        if (line.target.gatewayType === 'join') {
+          if (line.source.y > line.target.y) {
+            anchors[1] = 'Bottom';
+          } else if (line.source.y < line.target.y) {
+            anchors[1] = 'Top';
+          }
+        }
+
         var connection = instance.connect({
-          uuids: [line.source.resourceId+'-Right', line.target.resourceId+'-Left'],
-          editable: config.editable,
+          uuids: [line.source.resourceId +'-'+ anchors[0], line.target.resourceId +'-'+ anchors[1]],
+          editable: config.editable
         });
       });
     },
@@ -612,7 +630,7 @@
     model: undefined,
     config: {
       prefix: 'nx_',//对应html里节点的ID前缀
-      distance: {x: 200, y: 100},//对应html里节点之间的间隔
+      distance: {x: 150, y: 120},//对应html里节点之间的间隔
       node: {w: 60, h: 60},//对应html里节点的宽度和高度
       padding: 40,//对应html里节点的宽度和高度
       task_class: 'nxmodeler-usertask',
@@ -626,32 +644,38 @@
       sourceEndpoint: {
         endpoint: "Dot",
         paintStyle: {
-          //stroke: "#7AB02C",
-          fill: "transparent",
+          // stroke: "#7AB02C",
+          // fill: "transparent",
           radius: 7,
-          strokeWidth: 1
+          strokeWidth: 0
         },
         isSource: true,
-        // connector: ["Straight", {}],
+        // connector: ["Straight"],
         connector: ["Flowchart", {
-          stub: [40, 60],
-          //gap: 10,
-          cornerRadius: 5,//连线的弯曲度
-          alwaysRespectStubs: true
+          // stub: [40, 60],
+          // gap: 10,
+          // cornerRadius: 0,//连线的弯曲度
+          // alwaysRespectStubs: true
         }],
         connectorStyle: {//流程图的线
-          strokeWidth: 2,
+          strokeWidth: 1,
           stroke: "#61B7CF",
           joinstyle: "round",
           outlineStroke: "white",
-          outlineWidth: 2
+          outlineWidth: 0
+        },
+        connectorHoverStyle: {
+          strokeWidth: 1,
+          stroke: "#216477",
+          outlineStroke: "white",
+          outlineWidth: 0
         },
         maxConnections: 999,
       },
       targetEndpoint: {
         endpoint: "Dot",
         paintStyle: {
-          //fill: "#7AB02C",
+          // fill: "#7AB02C",
           radius: 7
         },
         maxConnections: 999,
