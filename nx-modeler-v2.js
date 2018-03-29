@@ -36,6 +36,8 @@
 
     // StartNoneEvent, EndNoneEvent, UserTask, ParallelGateway
     this.type = opt.type ? opt.type : 'UserTask';
+    // fork, join
+    this.gatewayType = opt.gatewayType ? opt.gatewayType : '';
     this.incoming = opt.incoming ? opt.incoming : [];
     this.outgoing = opt.outgoing ? opt.outgoing : [];
     this.x = 0;
@@ -55,7 +57,8 @@
           'formkeydefinition': this.type === 'UserTask' ? (this.isCommiter ? 'mcDiyForm01' : 'mcDiyForm02') : '',
           'isCommiter': this.isCommiter,
           'assignee': this.assignee,
-          'name': this.name
+          'name': this.name,
+          'gatewayType': this.gatewayType
         },
         'stencil': {
           'id': this.type
@@ -227,6 +230,11 @@
     _addNodes: function () {
       var that = this;
       var $el = $(this.el);
+
+      // 初始化节点坐标、层级和权重
+      this.nodes.forEach(function(node){node.x = 0; node.y = 0; node.level = 0; node.weight = 1; node.visited = false;});
+      this.lines.forEach(function(line){line.visited = false;});
+
       // 广度优先遍历，求节点到根的最大深度
       var nodeStack = [this.root];
       while (nodeStack.length) {
@@ -242,15 +250,8 @@
       // 根据最大深度计算节点x轴坐标
       var max_x = 0;
       this.nodes.forEach(function(node){
-        node.x = node.level * defaults.config.distance.x;
+        node.x = node.level * that.opt.config.distance.x;
         if (node.x > max_x) {max_x = node.x;}
-
-        // 顺便清空visited属性，防止深度优先遍历时出错
-        node.visited = false;
-      });
-      this.lines.forEach(function(line){
-        // 顺便清空visited属性，防止深度优先遍历时出错
-        line.visited = false;
       });
 
       // 深度优先遍历，统计分支节点权重
@@ -330,7 +331,7 @@
           } else if (curNode.outgoing.length === 1) {
             nextNode.y = curNode.y;
           } else {
-            var range = (curNode.weight - 1) * defaults.config.distance.y;
+            var range = (curNode.weight - 1) * that.opt.config.distance.y;
             nextNode.y = curNode.y - range / 2 + index * range / (curNode.outgoing.length - 1);
           }
           if (nextNode.y < min_y) {min_y = nextNode.y;}
@@ -343,12 +344,15 @@
       }
       computeAxis(this.root);
 
-      this.width = max_x;
-      this.height = max_y - min_y;
-      this.nodes.forEach(function(node){node.y -= min_y});
+      this.nodes.forEach(function(node){
+        node.x += that.opt.config.padding;
+        node.y += (0 - min_y) + that.opt.config.padding;
+      });
+      this.width = max_x + that.opt.config.node.w + that.opt.config.padding * 2;
+      this.height = max_y - min_y + that.opt.config.node.h + that.opt.config.padding * 2;
+      $el.css({ 'width': this.width + 'px', 'height': this.height + 'px' });
 
       // 添加向容器中添加dom
-      $el.css({ 'width': max_x+defaults.config.node.w+'px', 'height': max_y+defaults.config.node.h+'px' });
       this.nodes.forEach(function(node){
         $el.append(node.toDOM());
       });
@@ -360,15 +364,36 @@
       this.nodes.forEach(function(node){
         if(node.type !== 'EndNoneEvent'){
           instance.addEndpoint(config.prefix+node.resourceId, config.sourceEndpoint, {
-            anchor: 'RightMiddle',
-            uuid: node.resourceId+'-RightMiddle'
+            anchor: 'Right',
+            uuid: node.resourceId+'-Right'
           });
         }
         if(node.type !== 'StartNoneEvent'){
           instance.addEndpoint(config.prefix+node.resourceId, config.targetEndpoint, {
-            anchor: 'LeftMiddle',
-            uuid: node.resourceId+'-LeftMiddle'
+            anchor: 'Left',
+            uuid: node.resourceId+'-Left'
           });
+        }
+        if(node.type === 'ParallelGateway'){
+          if (node.outgoing.length > 1) {
+            instance.addEndpoint(config.prefix+node.resourceId, config.sourceEndpoint, {
+              anchor: 'Top',
+              uuid: node.resourceId+'-Top'
+            });
+            instance.addEndpoint(config.prefix+node.resourceId, config.sourceEndpoint, {
+              anchor: 'Bottom',
+              uuid: node.resourceId+'-Bottom'
+            });
+          } else {
+            instance.addEndpoint(config.prefix+node.resourceId, config.targetEndpoint, {
+              anchor: 'Top',
+              uuid: node.resourceId+'-Top'
+            });
+            instance.addEndpoint(config.prefix+node.resourceId, config.targetEndpoint, {
+              anchor: 'Bottom',
+              uuid: node.resourceId+'-Bottom'
+            });
+          }
         }
       });
     },
@@ -378,10 +403,63 @@
 
       this.lines.forEach(function(line){
         var connection = instance.connect({
-          uuids: [line.source.resourceId+'-RightMiddle', line.target.resourceId+'-LeftMiddle'],
+          uuids: [line.source.resourceId+'-Right', line.target.resourceId+'-Left'],
           editable: config.editable,
         });
       });
+    },
+    _deleteNodeAndLine: function (node) {
+      var incoming = node.incoming[0];
+      var outgoing = node.outgoing[0];
+
+      // 从上一节点outgoing中删除到当前节点的连线
+      var prevNode = incoming.source;
+      for (var i = 0; i < prevNode.outgoing.length; i++) {
+        if (prevNode.outgoing[i].resourceId === incoming.resourceId) {
+          prevNode.outgoing.splice(i, 1);
+          break;
+        }
+      }
+
+      // 从model中删除上一节点到当前节点的连线
+      for (var i = 0; i < this.lines.length; i++) {
+        if (this.lines[i].resourceId === incoming.resourceId) {
+          this.lines.splice(i, 1);
+          break;
+        }
+      }
+      delete this.lineMap[incoming.resourceId];
+
+      // 从model中删除当前节点
+      for (var i = 0; i < this.nodes.length; i++) {
+        if (this.nodes[i].resourceId === node.resourceId) {
+          this.nodes.splice(i, 1);
+          break;
+        }
+      }
+      delete this.nodeMap[node.resourceId];
+
+      var nextNode = outgoing.target;
+      if (prevNode.gatewayType === 'fork' && nextNode.gatewayType === 'join') {
+        // 如果前后分别是分支和聚合，则删除当前节点的outgoing
+        for (var i = 0; i < nextNode.incoming.length; i++) {
+          if (nextNode.incoming[i].resourceId === outgoing.resourceId) {
+            nextNode.incoming.splice(i, 1);
+            break;
+          }
+        }
+        for (var i = 0; i < this.lines.length; i++) {
+          if (this.lines[i].resourceId === outgoing.resourceId) {
+            this.lines.splice(i, 1);
+            break;
+          }
+        }
+        delete this.lineMap[outgoing.resourceId];
+      } else {
+        // 将当前节点的outgoing的source改为上一节点
+        outgoing.source = prevNode;
+        prevNode.outgoing.push(outgoing);
+      }
     },
     _init: function () {
       this.instance = jsPlumb.getInstance({
@@ -434,7 +512,7 @@
     addParallelNodes: function (curNode, nodes) {
       var curOutgoing = curNode.outgoing[0];
 
-      var forkNode = new Node({type: 'ParallelGateway'});
+      var forkNode = new Node({type: 'ParallelGateway', gatewayType: 'fork'});
       var forkIncoming = new Line({source: curNode, target: forkNode});
       forkNode.incoming.push(forkIncoming);
       curNode.outgoing = [forkIncoming];
@@ -443,7 +521,7 @@
       this.lines.push(forkIncoming);
       this.lineMap[forkIncoming.resourceId] = forkIncoming;
 
-      var joinNode = new Node({type: 'ParallelGateway', outgoing: [curOutgoing]});
+      var joinNode = new Node({type: 'ParallelGateway', gatewayType: 'join', outgoing: [curOutgoing]});
       curOutgoing.source = joinNode;
       this.nodes.push(joinNode);
       this.nodeMap[joinNode.resourceId] = joinNode;
@@ -465,7 +543,33 @@
       }
     },
     deleteNode: function (curNode) {
+      // 删除节点和连线
+      this._deleteNodeAndLine(curNode);
 
+      // 如果前后的分支和聚合之间只剩下一条分支，则删除这对分支和聚合节点
+      var tmp, fork, join;
+      tmp = curNode.incoming[0].source;
+      while (tmp.gatewayType != 'fork' && tmp.type !== 'StartNoneEvent') {
+        tmp = tmp.incoming[0].source;
+      }
+      if (tmp.gatewayType === 'fork') {
+        fork = tmp;
+      }
+
+      tmp = curNode.outgoing[0].target;
+      while (tmp.gatewayType != 'join' && tmp.type !== 'EndNoneEvent') {
+        tmp = tmp.outgoing[0].target;
+      }
+      if (tmp.gatewayType === 'join') {
+        join = tmp;
+      }
+
+      if (fork && fork.outgoing.length === 1 && join && join.incoming.length === 1) {
+        // 删除fork
+        this._deleteNodeAndLine(fork);
+        // 删除join
+        this._deleteNodeAndLine(join);
+      }
     },
     toJSON: function () {
       var model = {
@@ -496,6 +600,9 @@
       }
       this.nodes.forEach(function(node){model.childShapes.push(node.toJSON())});
       this.lines.forEach(function(line){model.childShapes.push(line.toJSON())});
+      model.properties.process_id = this.process_id;
+      model.properties.name = this.name;
+      model.bounds.lowerRight = {x: this.width, y: this.height};
       return model;
     }
   }
@@ -507,6 +614,7 @@
       prefix: 'nx_',//对应html里节点的ID前缀
       distance: {x: 200, y: 100},//对应html里节点之间的间隔
       node: {w: 60, h: 60},//对应html里节点的宽度和高度
+      padding: 40,//对应html里节点的宽度和高度
       task_class: 'nxmodeler-usertask',
       task_icon_class: 'glyphicon-user',
       event_class: 'nxmodeler-eventnode',
@@ -816,6 +924,19 @@
               data.render();
               break;
           }
+        },
+        beforeOpen: function(event, ui) {
+          $el.contextmenu("enableEntry", "add_serial", true);
+          $el.contextmenu("enableEntry", "add_parallel", true);
+          $el.contextmenu("enableEntry", "delete", true);
+          var $target = $(ui.target).hasClass('nxmodeler-node') ? $(ui.target) : $(ui.target).closest('.nxmodeler-node');
+          var cur_node = $target.data('nxnode');
+
+          // 判断是否可以删除节点
+          if (cur_node.isCommiter || cur_node.type === 'ParallelGateway') {
+            // 发起人和网关节点不能删除
+            $el.contextmenu("enableEntry", "delete", false);
+          }
         }
       });
       
@@ -897,8 +1018,35 @@
         }
       });
 
-      // console.log(JSON.stringify(data.toJSON(), null, 2))
-      
+      $(document).on('click', '.nxmodeler-btn-save', function(e) {
+        $('.nxmodeler-userpicker-processname', $saveDialog).val(data.opt.modelName);
+        $saveDialog.modal('show');
+      });
+
+      $saveDialog.on('click', '.btn-primary', function(e) {
+        var processName = $('.nxmodeler-userpicker-processname', $saveDialog).val();
+        if (processName === '') {
+          $alert.find('.nxmodeler-alert-message').text('请填写流程名称！');
+          $alert.modal('show');
+          return;
+        }
+
+        for (var i in data.nodes) {
+          var el = data.nodes[i];
+          if (el.type === 'UserTask' && !el.assignee) {
+            $alert.find('.nxmodeler-alert-message').text('所有节点必须指定处理人！');
+            $alert.modal('show');
+            return;
+          }
+        }
+
+        var timestamp = new Date().getTime();
+        data.name = data.opt.commiter.name + '_' + processName + '_' + timestamp;
+        data.process_id = data.opt.commiter.name + timestamp;
+        data.opt.onSave.apply(that, [processName, data.toJSON()]);
+        $saveDialog.modal('hide');
+      });
+
     });
     if (internal_return !== undefined)
       return internal_return;
