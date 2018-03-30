@@ -28,18 +28,19 @@
     return 'sid-'+uuid.join('');
   }
 
-  var Node = function (opt) {
+  var Node = function (nodeData, opt) {
+    this.opt = opt;
     this.resourceId = _uuid();
-    this.isCommiter = opt.isCommiter ? opt.isCommiter : false;
-    this.assignee = opt.assignee ? opt.assignee : '';
-    this.name = opt.name ? opt.name : '';
+    this.isCommiter = nodeData.isCommiter ? nodeData.isCommiter : false;
+    this.assignee = nodeData.assignee ? nodeData.assignee : '';
+    this.name = nodeData.name ? nodeData.name : '';
 
     // StartNoneEvent, EndNoneEvent, UserTask, ParallelGateway
-    this.type = opt.type ? opt.type : 'UserTask';
+    this.type = nodeData.type ? nodeData.type : 'UserTask';
     // fork, join
-    this.gatewayType = opt.gatewayType ? opt.gatewayType : '';
-    this.incoming = opt.incoming ? opt.incoming : [];
-    this.outgoing = opt.outgoing ? opt.outgoing : [];
+    this.gatewayType = nodeData.gatewayType ? nodeData.gatewayType : '';
+    this.incoming = nodeData.incoming ? nodeData.incoming : [];
+    this.outgoing = nodeData.outgoing ? nodeData.outgoing : [];
   };
 
   Node.prototype = {
@@ -65,8 +66,8 @@
             'y': this.y
           },
           'lowerRight': {
-            'x': this.x + defaults.config.node.w,
-            'y': this.y + defaults.config.node.h
+            'x': this.x + this.opt.config.node.w,
+            'y': this.y + this.opt.config.node.h
           }
         }
       }
@@ -108,15 +109,27 @@
     }
   };
 
-  var Line = function (opt) {
+  var Line = function (lineData, opt) {
+    this.opt = opt;
     this.resourceId = _uuid();
-    this.source = opt.source;
-    this.target = opt.target;
+    this.source = lineData.source;
+    this.target = lineData.target;
   };
 
   Line.prototype = {
     constructor: Line,
     toJSON: function () {
+      var bounds = {
+        'upperLeft': {
+          'x': this.source.x < this.target.x ? this.source.x : this.target.x,
+          'y': this.source.y < this.target.y ? this.source.y : this.target.y
+        },
+        'lowerRight': {
+          'x': this.source.x > this.target.x ? this.source.x : this.target.x,
+          'y': this.source.y > this.target.y ? this.source.y : this.target.y
+        }
+      };
+      console.debug('lineId: %s, bounds: %O', this.resourceId, bounds);
       return {
         'resourceId': this.resourceId,
         'properties': {
@@ -135,14 +148,15 @@
         'outgoing': [
           {'resourceId': this.target.resourceId}
         ],
+        'bounds': bounds,
         'dockers': [
           {
-            'x': this.source.x + defaults.config.node.w, // TODO 兼容Activiti设计器的docker坐标算法
-            'y': this.source.y + defaults.config.node.h / 2
+            'x': this.opt.config.node.w,
+            'y': this.opt.config.node.h / 2
           },
           {
-            'x': this.target.x,
-            'y': this.target.y + defaults.config.node.h / 2
+            'x': 0,
+            'y': this.opt.config.node.h / 2
           }
         ]
       }
@@ -161,9 +175,9 @@
     this.root = undefined;
 
     if (!opt.model) {
-      var start = new Node({type: 'StartNoneEvent', name: '开始'});
-      var commiter = new Node({isCommiter: true, assignee: opt.commiter.assignee, name: opt.commiter.name});
-      var end = new Node({type: 'EndNoneEvent', name: '结束'});
+      var start = new Node({type: 'StartNoneEvent', name: '开始'}, opt);
+      var commiter = new Node({isCommiter: true, assignee: opt.commiter.assignee, name: opt.commiter.name}, opt);
+      var end = new Node({type: 'EndNoneEvent', name: '结束'}, opt);
       this.nodes.push(start);
       this.nodeMap[start.resourceId] = start;
       this.nodes.push(commiter);
@@ -171,12 +185,12 @@
       this.nodes.push(end);
       this.nodeMap[end.resourceId] = end;
 
-      var line1 = new Line({source: start, target: commiter});
+      var line1 = new Line({source: start, target: commiter}, opt);
       start.outgoing.push(line1);
       commiter.incoming.push(line1);
       this.lines.push(line1);
       this.lineMap[line1.resourceId] = line1;
-      var line2 = new Line({source: commiter, target: end});
+      var line2 = new Line({source: commiter, target: end}, opt);
       commiter.outgoing.push(line2);
       end.incoming.push(line2);
       this.lines.push(line2);
@@ -191,7 +205,7 @@
 
       opt.model.childShapes.forEach(function(el){
         if (el.stencil.id !== 'SequenceFlow') {
-          var node = new Node({type: el.type, isCommiter: el.isCommiter, assignee: el.properties.assignee, name: el.properties.name});
+          var node = new Node({type: el.type, isCommiter: el.isCommiter, assignee: el.properties.assignee, name: el.properties.name}, opt);
           this.nodes.push(node);
           this.nodeMap[node.resourceId] = node;
         }
@@ -199,7 +213,7 @@
 
       opt.model.childShapes.forEach(function(el){
         if (el.stencil.id === 'SequenceFlow') {
-          var line = new Line({source: this.nodeMap[el.source.resourceId], target: this.nodeMap[el.target.resourceId]});
+          var line = new Line({source: this.nodeMap[el.source.resourceId], target: this.nodeMap[el.target.resourceId]}, opt);
           this.lines.push(line);
           this.lineMap[line.resourceId] = line;
         }
@@ -509,8 +523,8 @@
       curNode.outgoing = [];
       var tmp = curNode;
       for (var i=0; i<nodes.length; i++) {
-        var newNode = new Node({assignee: nodes[i].assignee, name: nodes[i].name});
-        var newLine = new Line({source: tmp, target: newNode});
+        var newNode = new Node({assignee: nodes[i].assignee, name: nodes[i].name}, this.opt);
+        var newLine = new Line({source: tmp, target: newNode}, this.opt);
         tmp.outgoing.push(newLine);
         newNode.incoming.push(newLine);
         this.nodes.push(newNode);
@@ -525,8 +539,8 @@
     addParallelNodes: function (curNode, nodes) {
       var curOutgoing = curNode.outgoing[0];
 
-      var forkNode = new Node({type: 'ParallelGateway', gatewayType: 'fork'});
-      var forkIncoming = new Line({source: curNode, target: forkNode});
+      var forkNode = new Node({type: 'ParallelGateway', gatewayType: 'fork'}, this.opt);
+      var forkIncoming = new Line({source: curNode, target: forkNode}, this.opt);
       forkNode.incoming.push(forkIncoming);
       curNode.outgoing = [forkIncoming];
       this.nodes.push(forkNode);
@@ -534,15 +548,15 @@
       this.lines.push(forkIncoming);
       this.lineMap[forkIncoming.resourceId] = forkIncoming;
 
-      var joinNode = new Node({type: 'ParallelGateway', gatewayType: 'join', outgoing: [curOutgoing]});
+      var joinNode = new Node({type: 'ParallelGateway', gatewayType: 'join', outgoing: [curOutgoing]}, this.opt);
       curOutgoing.source = joinNode;
       this.nodes.push(joinNode);
       this.nodeMap[joinNode.resourceId] = joinNode;
 
       for (var i=0; i<nodes.length; i++) {
-        var newNode = new Node({assignee: nodes[i].assignee, name: nodes[i].name});
-        var incoming = new Line({source: forkNode, target: newNode});
-        var outgoing = new Line({source: newNode, target: joinNode});
+        var newNode = new Node({assignee: nodes[i].assignee, name: nodes[i].name}, this.opt);
+        var incoming = new Line({source: forkNode, target: newNode}, this.opt);
+        var outgoing = new Line({source: newNode, target: joinNode}, this.opt);
         newNode.incoming.push(incoming);
         newNode.outgoing.push(outgoing);
         forkNode.outgoing.push(incoming);
@@ -980,30 +994,43 @@
       });
       
       $userpicker.on('shown.bs.modal', function(e) {
+        var action = $userpicker.data('action');
+        var cur_node = $userpicker.data('cur_node');
+
         table.clear();
         table.rows.add(table_data);
         table.columns.adjust().draw(); // 初始化datatable时modal是隐藏的，会导致表头宽度不正确，这里重绘datatable
 
         select_table.clear();
+        if (action === 'modify') {
+          select_table.rows.add([{DISPLAYNAME: cur_node.name, USERNAME: '', PARTYNAME: ''}]);
+        }
         select_table.columns.adjust().draw(); // 初始化datatable时modal是隐藏的，会导致表头宽度不正确，这里重绘datatable
       });
       
       $('.nxmodeler-userpicker-table > tbody', $userpicker).on('click', '.btn-plus', function (e) {
+        var action = $userpicker.data('action');
         var _tr = $(this).closest('tr')[0];
         var row = table.row(_tr).data();
         var selected = select_table.rows().data();
-        var exists = false;
-        for (var i=0; i<selected.length; i++) {
-          if (selected[i].ID === row.ID) {
-            exists = true;
-            break;
-          }
-        }
-        if (!exists) {
-          selected.push(row);
+        if (action === 'modify') {
           select_table.clear();
-          select_table.rows.add(selected);
+          select_table.rows.add([row]);
           select_table.columns.adjust().draw();
+        } else {
+          var exists = false;
+          for (var i=0; i<selected.length; i++) {
+            if (selected[i].ID === row.ID) {
+              exists = true;
+              break;
+            }
+          }
+          if (!exists) {
+            selected.push(row);
+            select_table.clear();
+            select_table.rows.add(selected);
+            select_table.columns.adjust().draw();
+          }
         }
       });
       
@@ -1064,8 +1091,26 @@
               }
               data.render();
               break;
+            case 'modify':
+              if (rows.length ===1) {
+                cur_node.assignee = rows[0].ID;
+                cur_node.name = rows[0].DISPLAYNAME;
+              } else {
+                return;
+              }
+              data.render();
+              break;
           }
           $userpicker.modal('hide');
+        }
+      });
+
+      $el.on('click', '.nxmodeler-usertask', function(e){
+        var $target = $(e.target).hasClass('nxmodeler-node') ? $(e.target) : $(e.target).closest('.nxmodeler-node');
+        var cur_node = $target.data('nxnode');
+        if (!cur_node.isCommiter) {
+          $userpicker.find('.modal-title').text('选择参与者');
+          $userpicker.data('cur_node', cur_node).data('action', 'modify').modal('show');
         }
       });
 
