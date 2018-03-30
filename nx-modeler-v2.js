@@ -90,13 +90,18 @@
       }
       var $node = $('<div id="'+defaults.config.prefix+this.resourceId+'"></div>');
       $node.append($('<span class="glyphicon '+icon_class+'"></span>'));
-      if(this.type === 'UserTask'){
-        $node.append($('<span class="nxmodeler-usertask-label">'+(this.name?this.name:'')+'</span>'));
+      if(this.name){
+        var $label = $('<span class="nxmodeler-usertask-label">'+(this.name?this.name:'')+'</span>');
+        $label.css({ 'top': (defaults.config.node.h - 2 - 20) / 2 + 'px' });
+        $node.append($label);
       }
-      if(this.type !== 'StartNoneEvent' && this.type !== 'EndNoneEvent' && this.outgoing.length === 1){
+      if(this.type !== 'StartNoneEvent' && this.type !== 'EndNoneEvent' && this.gatewayType !== 'fork'){
         $node.addClass('nxmodeler-node');
       }
-      $node.addClass(node_class).css({ 'left': this.x+'px', 'top': this.y+'px' });
+      $node.addClass(node_class).css({ 'left': this.x + 'px', 'top': this.y + 'px' , 'width': defaults.config.node.w + 'px', 'height': defaults.config.node.h + 'px' });
+      if (this.type === 'ParallelGateway') {
+        $node.find('.glyphicon').css({ 'top': (defaults.config.node.h - 2 - 20) / 2 + 'px', 'left': (defaults.config.node.w - 20) / 2 + 'px' });
+      }
       $node.data('nxnode', this)
 
       return $node;
@@ -156,9 +161,9 @@
     this.root = undefined;
 
     if (!opt.model) {
-      var start = new Node({type: 'StartNoneEvent'});
+      var start = new Node({type: 'StartNoneEvent', name: '开始'});
       var commiter = new Node({isCommiter: true, assignee: opt.commiter.assignee, name: opt.commiter.name});
-      var end = new Node({type: 'EndNoneEvent'});
+      var end = new Node({type: 'EndNoneEvent', name: '结束'});
       this.nodes.push(start);
       this.nodeMap[start.resourceId] = start;
       this.nodes.push(commiter);
@@ -621,12 +626,12 @@
     config: {
       prefix: 'nx_',//对应html里节点的ID前缀
       distance: {x: 120, y: 240},//对应html里节点之间的间隔
-      node: {w: 60, h: 60},//对应html里节点的宽度和高度
+      node: {w: 56, h: 56},//对应html里节点的宽度和高度
       padding: 40,//对应html里节点的宽度和高度
       task_class: 'nxmodeler-usertask',
       task_icon_class: 'glyphicon-user',
       event_class: 'nxmodeler-eventnode',
-      event_icon_class: 'glyphicon-flag',
+      event_icon_class: '',//'glyphicon-flag',
       gateway_class: 'nxmodeler-gateway',
       gateway_icon_class: 'glyphicon-plus',
       elementName: 'node',
