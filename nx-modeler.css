@@ -49,6 +49,10 @@
   font-size: 14px;
 }
 
+.nxmodeler-userpicker .modal-title {
+  font-weight: 600;
+}
+
 .nxmodeler-userpicker tbody tr {
   cursor: pointer;
 }
@@ -59,4 +63,55 @@
 
 .ui-menu {
   width: 150px;
+}
+
+/* 覆盖默认样式 */
+.nxmodeler-userpicker thead > tr > th {
+  border-bottom: 0;
+}
+
+.nxmodeler-userpicker .btn,
+.nxmodeler-userpicker .form-control {
+  border-radius: 2px;
+}
+
+.nxmodeler-userpicker .btn-default {
+  color: #6e8bf3;
+  border-color: #6e8bf3;
+}
+
+.nxmodeler-userpicker .btn-primary {
+  background-color: #6e8bf3;
+  border-color: #6e8bf3;
+}
+
+.nxmodeler-userpicker .btn-primary:hover {
+  background-color: #5e7be3;
+  border-color: #5e7be3;
+}
+
+.nxmodeler-userpicker thead {
+  color: #fff;
+  background-color: #6e8bf3;
+}
+
+.nxmodeler-userpicker tbody tr:hover {
+  color: #fff;
+  background-color: #a7a1f7;
+}
+
+.nxmodeler-userpicker tbody tr:hover .btn-default {
+  color: #fff;
+  background-color: #a7a1f7;
+  border-color: #fff;
+}
+
+.nxmodeler-userpicker tbody > tr .btn-default:hover {
+  background-color: #6e8bf3;
+}
+
+.nxmodeler-userpicker .ztree a.curSelectedNode {
+  color: #fff;
+  background-color: #a7a1f7;
+  border-color: #5e7be3;
 }

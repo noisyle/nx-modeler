@@ -283,7 +283,7 @@
               if (jump_count === 0) {
                 // 将栈中尚未闭合的分支（当前节点的祖先）权重按照当前节点权重-1进行提升（因为祖先节点已经为当前节点所在分支计了1权重）
                 path.weight += (curNode.outgoing.length - 1);
-                console.debug('深度优先遍历1, forkId: %s, parent: %s, weight: %s', curNode.resourceId, path.target.name, path.weight);
+                // console.debug('深度优先遍历1, forkId: %s, parent: %s, weight: %s', curNode.resourceId, path.target.name, path.weight);
               } else {
                 jump_count -= 1;
               }
@@ -341,7 +341,7 @@
             nextNode.y = curNode.y;
           } else {
             nextNode.y = curNode.y - parseInt(range / 2) + offset + parseInt((line.weight - 1) * that.opt.config.distance.y / 2);
-            console.debug('深度优先遍历2, name: %s, weight: %s, y: %s, sum_weight: %s, range: %s, offset: %s', nextNode.name, line.weight, nextNode.y, sum_weight, range, offset);
+            // console.debug('深度优先遍历2, name: %s, weight: %s, y: %s, sum_weight: %s, range: %s, offset: %s', nextNode.name, line.weight, nextNode.y, sum_weight, range, offset);
             offset += parseInt(line.weight * that.opt.config.distance.y);
           }
           if (nextNode.y < min_y) {min_y = nextNode.y;}
@@ -691,16 +691,16 @@
       }
     },
     onSave: function(modelName, model){
-      console.debug('modelName: ' + modelName);
-      console.debug(JSON.stringify(model, null, 2));
+      console.log('modelName: ' + modelName);
+      console.log(JSON.stringify(model, null, 2));
     },
     queryTree: function(param, callback){
-      console.debug('queryTree - param: %O', param);
+      console.log('queryTree - param: %O', param);
       var ztree_data =[];
       callback(ztree_data, {expandId: ''});
     },
     queryTable: function(param, callback){
-      console.debug('queryTable - param: %O', param);
+      console.log('queryTable - param: %O', param);
       var table_data = [];
       callback(table_data);
     },
@@ -739,7 +739,7 @@
     '                </form>'+
     '              </div>'+
     '              <div class="col-md-12" style="height: 271px;">'+
-    '                <table class="table table-striped table-bordered table-hover table-condensed nowrap nxmodeler-userpicker-table" cellspacing="0" width="100%">'+
+    '                <table class="table table-striped table-hover table-condensed nowrap nxmodeler-userpicker-table" cellspacing="0" width="100%">'+
     '                  <thead>'+
     '                    <tr>'+
     '                      <th>姓名</th>'+
@@ -753,7 +753,7 @@
     '            </div>'+
     '          </div>'+
     '          <div class="col-md-6">'+
-    '            <table class="table table-striped table-bordered table-hover table-condensed nowrap nxmodeler-userpicker-select" cellspacing="0" width="100%">'+
+    '            <table class="table table-striped table-hover table-condensed nowrap nxmodeler-userpicker-select" cellspacing="0" width="100%">'+
     '              <thead>'+
     '                <tr>'+
     '                  <th>姓名</th>'+
@@ -888,6 +888,7 @@
           { data: '' }
         ],
         columnDefs: [
+          { sortable: false, targets: ["_all"] },
           {
             targets: -1,
             render: function ( data, type, row ) {
@@ -912,6 +913,7 @@
           { data: '' }
         ],
         columnDefs: [
+          { sortable: false, targets: ["_all"] },
           {
             targets: -1,
             render: function ( data, type, row ) {
@@ -940,7 +942,7 @@
         select: function (event, ui) {
           var $target = $(ui.target).hasClass('nxmodeler-node') ? $(ui.target) : $(ui.target).closest('.nxmodeler-node');
           var cur_node = $target.data('nxnode');
-          console.debug(ui.cmd);
+          // console.debug(ui.cmd);
           switch (ui.cmd) {
             case "add_serial":
               $userpicker.find('.modal-title').text('追加串行节点');
