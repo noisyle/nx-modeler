@@ -283,7 +283,7 @@
               if (jump_count === 0) {
                 // 将栈中尚未闭合的分支（当前节点的祖先）权重按照当前节点权重-1进行提升（因为祖先节点已经为当前节点所在分支计了1权重）
                 path.weight += (curNode.outgoing.length - 1);
-                break;
+                console.debug('深度优先遍历1, forkId: %s, parent: %s, weight: %s', curNode.resourceId, path.target.name, path.weight);
               } else {
                 jump_count -= 1;
               }
@@ -308,14 +308,14 @@
       // 根据之前统计的分支节点权重计算其各子节点y轴坐标
       var min_y = 0, max_y = 0, forkJoinStack = [];
       function computeAxis (curNode) {
-        console.debug('深度优先遍历2, curNode: ', curNode);
+        // console.debug('深度优先遍历2, curNode: ', curNode);
         if (curNode.gatewayType === 'fork' || curNode.gatewayType === 'join') {
           forkJoinStack.push(curNode);
         }
-        console.debug('深度优先遍历2, forkJoinStack: ', forkJoinStack);
+        // console.debug('深度优先遍历2, forkJoinStack: ', forkJoinStack);
         var sum_weight = 0;
         curNode.outgoing.forEach(function(line){sum_weight += line.weight;});
-        var offset = 0, range = (sum_weight - 1) * that.opt.config.distance.y;
+        var offset = 0, range = parseInt((sum_weight - 1) * that.opt.config.distance.y);
         curNode.outgoing.forEach(function(line){
           var nextNode = line.target;
           if (nextNode.gatewayType === 'join') {
@@ -323,7 +323,7 @@
             var jump_count = 0;
             for (var i = forkJoinStack.length - 1; i >= 0; i--) {
               var forkOrJoin = forkJoinStack[i];
-              console.debug('深度优先遍历2, 回溯forkOrJoin: ', forkOrJoin);
+              // console.debug('深度优先遍历2, 回溯forkOrJoin: ', forkOrJoin);
               if (forkOrJoin.outgoing.length > 1) {
                 // 分支节点
                 if (jump_count === 0) {
@@ -340,9 +340,9 @@
           } else if (curNode.gatewayType !== 'fork') {
             nextNode.y = curNode.y;
           } else {
-            console.debug('深度优先遍历2, sum_weight: %s, range: %s, offset: %s', sum_weight, range, offset);
-            nextNode.y = curNode.y + offset - parseInt((1 - line.weight / sum_weight) * range / 2);
-            offset += parseInt(range * line.weight / sum_weight);
+            nextNode.y = curNode.y - parseInt(range / 2) + offset + parseInt((line.weight - 1) * that.opt.config.distance.y / 2);
+            console.debug('深度优先遍历2, name: %s, weight: %s, y: %s, sum_weight: %s, range: %s, offset: %s', nextNode.name, line.weight, nextNode.y, sum_weight, range, offset);
+            offset += parseInt(line.weight * that.opt.config.distance.y);
           }
           if (nextNode.y < min_y) {min_y = nextNode.y;}
           if (nextNode.y > max_y) {max_y = nextNode.y;}
@@ -638,8 +638,8 @@
     model: undefined,
     config: {
       prefix: 'nx_',//对应html里节点的ID前缀
-      distance: {x: 120, y: 240},//对应html里节点之间的间隔
-      node: {w: 56, h: 56},//对应html里节点的宽度和高度
+      distance: {x: 120, y: 120},//对应html里节点之间的间隔
+      node: {w: 60, h: 60},//对应html里节点的宽度和高度
       padding: 40,//对应html里节点的宽度和高度
       task_class: 'nxmodeler-usertask',
       task_icon_class: 'glyphicon-user',
