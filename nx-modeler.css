@@ -14,49 +14,42 @@
 
 .nxmodeler-canvas {
   position: relative;
-  margin: 40px;
 }
 
-.nxmodeler-eventnode {
-  position: absolute;
-  width: 60px;
-  height: 60px;
-  border: 1px solid #61B7CF;
-  border-radius: 5px;
-}
-
-.nxmodeler-usertask {
-  position: absolute;
-  width: 60px;
-  height: 60px;
-  border: 1px solid #61B7CF;
-  border-radius: 5px;
-}
-
-.nxmodeler-usertask:hover {
+.nxmodeler-node:hover {
   border: 1px solid #216477;
   cursor: pointer;
 }
 
+.nxmodeler-eventnode,
+.nxmodeler-gateway {
+  position: absolute;
+  border: 1px solid #61B7CF;
+  border-radius: 30px;
+}
+
+.nxmodeler-gateway .glyphicon {
+  font-size: 20px;
+}
+
+.nxmodeler-usertask {
+  position: absolute;
+  border: 1px solid #61B7CF;
+  border-radius: 5px;
+}
+
 .nxmodeler-usertask-label {
   position: absolute;
-  top: 20px;
+  left: 0;
   width: 100%;
   overflow: hidden;
   white-space: nowrap;
   text-align: center;
   font-weight: 600;
+  font-size: 14px;
 }
 
-.nxmodeler-userpicker .nxmodeler-userpicker-right {
-  border-left: 1px solid #ddd;
-}
-
-.nxmodeler-userpicker-tree.ztree {
-  height: 460px;
-}
-
-.nxmodeler-userpicker-table tbody tr {
+.nxmodeler-userpicker tbody tr {
   cursor: pointer;
 }
 
