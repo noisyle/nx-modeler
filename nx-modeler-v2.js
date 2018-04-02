@@ -129,7 +129,6 @@
           'y': this.source.y > this.target.y ? this.source.y : this.target.y
         }
       };
-      console.debug('lineId: %s, bounds: %O', this.resourceId, bounds);
       return {
         'resourceId': this.resourceId,
         'properties': {
@@ -695,6 +694,16 @@
       console.debug('modelName: ' + modelName);
       console.debug(JSON.stringify(model, null, 2));
     },
+    queryTree: function(param, callback){
+      console.debug('queryTree - param: %O', param);
+      var ztree_data =[];
+      callback(ztree_data, {expandId: ''});
+    },
+    queryTable: function(param, callback){
+      console.debug('queryTable - param: %O', param);
+      var table_data = [];
+      callback(table_data);
+    },
     container_template: '<div class="nxmodeler-container">'+
     '  <nav class="navbar navbar-default">'+
     '    <div class="container-fluid">'+
@@ -718,8 +727,16 @@
     '        <div class="row">'+
     '          <div class="col-md-6" style="border-right: 1px solid #ddd;">'+
     '            <div class="row">'+
-    '              <div class="col-md-12" style="border-bottom: 1px solid #ddd;">'+
+    '              <div class="col-md-12" style="margin-bottom: 5px; border-bottom: 1px solid #ddd;">'+
     '                <ul class="ztree nxmodeler-userpicker-tree" style="height: 220px;"></ul>'+
+    '              </div>'+
+    '              <div class="col-md-12">'+
+    '                <form class="form-inline" style="text-align: right;">'+
+    '                  <div class="form-group">'+
+    '                    <input type="text" class="form-control nxmodeler-userpicker-filter">'+
+    '                  </div>'+
+    '                  <button type="button" class="btn btn-default nxmodeler-userpicker-search">查询</button>'+
+    '                </form>'+
     '              </div>'+
     '              <div class="col-md-12" style="height: 271px;">'+
     '                <table class="table table-striped table-bordered table-hover table-condensed nowrap nxmodeler-userpicker-table" cellspacing="0" width="100%">'+
@@ -829,7 +846,7 @@
       $wrap.append($alert);
 
       var zTreeObj, table;
-      // mock部门树
+      // 部门树
       var ztree_settings = {
         data: {
           simpleData: {
@@ -839,58 +856,22 @@
         callback: {
           onClick: function (event, treeId, treeNode) {
             table.clear();
-            table.rows.add(table_data);
-            table.draw();
+            opts.queryTable({partyId: treeNode.id}, function(table_data){
+              table.rows.add(table_data);
+              table.draw();
+            });
           }
         }
       };
-      var ztree_data =[
-        { id:1, pId:0, name:"父节点1 - 展开", open:"true"},
-        { id:11, pId:1, name:"父节点11 - 折叠"},
-        { id:111, pId:11, name:"叶子节点111"},
-        { id:112, pId:11, name:"叶子节点112"},
-        { id:113, pId:11, name:"叶子节点113"},
-        { id:114, pId:11, name:"叶子节点114"},
-        { id:12, pId:1, name:"父节点12 - 折叠"},
-        { id:121, pId:12, name:"叶子节点121"},
-        { id:122, pId:12, name:"叶子节点122"},
-        { id:123, pId:12, name:"叶子节点123"},
-        { id:124, pId:12, name:"叶子节点124"},
-        { id:13, pId:1, name:"父节点13 - 没有子节点", isParent:true},
-        { id:2, pId:0, name:"父节点2 - 折叠"},
-        { id:21, pId:2, name:"父节点21 - 展开", open:true},
-        { id:211, pId:21, name:"叶子节点211"},
-        { id:212, pId:21, name:"叶子节点212"},
-        { id:213, pId:21, name:"叶子节点213"},
-        { id:214, pId:21, name:"叶子节点214"},
-        { id:22, pId:2, name:"父节点22 - 折叠"},
-        { id:221, pId:22, name:"叶子节点221"},
-        { id:222, pId:22, name:"叶子节点222"},
-        { id:223, pId:22, name:"叶子节点223"},
-        { id:224, pId:22, name:"叶子节点224"},
-        { id:23, pId:2, name:"父节点23 - 折叠"},
-        { id:231, pId:23, name:"叶子节点231"},
-        { id:232, pId:23, name:"叶子节点232"},
-        { id:233, pId:23, name:"叶子节点233"},
-        { id:234, pId:23, name:"叶子节点234"},
-        { id:3, pId:0, name:"父节点3 - 没有子节点", isParent:true}
-      ];      
-      zTreeObj = $.fn.zTree.init($(".nxmodeler-userpicker-tree", $userpicker), ztree_settings, ztree_data);
+      opts.queryTree({}, function(ztree_data, other_opt){
+        zTreeObj = $.fn.zTree.init($(".nxmodeler-userpicker-tree", $userpicker), ztree_settings, ztree_data);
+        if (other_opt.expandId) {
+          var expandNode = zTreeObj.getNodeByParam("id", other_opt.expandId, null);
+          zTreeObj.selectNode(expandNode, false, true);
+        }
+      });
 
-      // mock人员列表
-      var table_data = [
-        {DISPLAYNAME: "俞新海", USERNAME: "yuxinhai", ID: 1049, PARTYNAME: "信息部-java开发组"},
-        {DISPLAYNAME: "冯宇鹏", USERNAME: "fengyupeng", ID: 1071, PARTYNAME: "信息部-java开发组"},
-        {DISPLAYNAME: "庞泓", USERNAME: "panghong", ID: 1072, PARTYNAME: "信息部-java开发组"},
-        {DISPLAYNAME: "李亮", USERNAME: "liliang", ID: 1069, PARTYNAME: "信息部-java开发组"},
-        {DISPLAYNAME: "李强", USERNAME: "liqiang", ID: 1096, PARTYNAME: "信息部-java开发组"},
-        {DISPLAYNAME: "杜佳鹏", USERNAME: "dujiapeng", ID: 817031254523904, PARTYNAME: "信息部-java开发组"},
-        {DISPLAYNAME: "王哲", USERNAME: "wangzhe", ID: 973876359495680, PARTYNAME: "信息部-java开发组"},
-        {DISPLAYNAME: "王跃", USERNAME: "wangyue", ID: 817031819214848, PARTYNAME: "信息部-java开发组"},
-        {DISPLAYNAME: "郭宏波", USERNAME: "guohongbo", ID: 829431494967296, PARTYNAME: "信息部-java开发组"},
-        {DISPLAYNAME: "马磊", USERNAME: "malei", ID: 1068, PARTYNAME: "信息部-java开发组"},
-        {DISPLAYNAME: "马辰", USERNAME: "machen", ID: 1070, PARTYNAME: "信息部-java开发组"}
-      ];
+      // 人员列表
       table = $('.nxmodeler-userpicker-table').DataTable({
         language: {url: "lib/DataTables-Bootstrap3/1.10.16/i18n/Chinese.json"},
         select: false,
@@ -992,14 +973,32 @@
           }
         }
       });
+
+      var doQuery = function(e) {
+        table.clear();
+        opts.queryTable({userName: $('.nxmodeler-userpicker-filter', $userpicker).val()}, function(table_data){
+          table.rows.add(table_data);
+          table.draw();
+        });
+        return false;
+      };
+      $userpicker.on('click', '.nxmodeler-userpicker-search', doQuery);
+      $userpicker.on('keydown', '.nxmodeler-userpicker-filter', function (e) {
+        if (e.keyCode === 13) {
+          doQuery();
+          return false;
+        }
+      });
       
       $userpicker.on('shown.bs.modal', function(e) {
         var action = $userpicker.data('action');
         var cur_node = $userpicker.data('cur_node');
 
         table.clear();
-        table.rows.add(table_data);
-        table.columns.adjust().draw(); // 初始化datatable时modal是隐藏的，会导致表头宽度不正确，这里重绘datatable
+        opts.queryTable({}, function(table_data){
+          table.rows.add(table_data);
+          table.columns.adjust().draw(); // 初始化datatable时modal是隐藏的，会导致表头宽度不正确，这里重绘datatable
+        });
 
         select_table.clear();
         if (action === 'modify') {
@@ -1007,7 +1006,7 @@
         }
         select_table.columns.adjust().draw(); // 初始化datatable时modal是隐藏的，会导致表头宽度不正确，这里重绘datatable
       });
-      
+
       $('.nxmodeler-userpicker-table > tbody', $userpicker).on('click', '.btn-plus', function (e) {
         var action = $userpicker.data('action');
         var _tr = $(this).closest('tr')[0];
