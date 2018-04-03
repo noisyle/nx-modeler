@@ -53,10 +53,6 @@
   font-weight: 600;
 }
 
-.nxmodeler-userpicker tbody tr {
-  cursor: pointer;
-}
-
 .ui-widget {
   font-size: .8em;
 }
@@ -75,43 +71,73 @@
   border-radius: 2px;
 }
 
-.nxmodeler-userpicker .btn-default {
-  color: #6e8bf3;
-  border-color: #6e8bf3;
+.nxmodeler-userpicker .btn.btn-default {
+  color: #40b0f7;
+  border-color: #40b0f7;
 }
 
-.nxmodeler-userpicker .btn-primary {
-  background-color: #6e8bf3;
-  border-color: #6e8bf3;
+.nxmodeler-userpicker .btn.btn-primary {
+  background-color: #40b0f7;
+  border-color: #40b0f7;
 }
 
-.nxmodeler-userpicker .btn-primary:hover {
-  background-color: #5e7be3;
-  border-color: #5e7be3;
+.nxmodeler-userpicker .btn.btn-primary:hover {
+  background-color: #38a8f5;
+  border-color: #38a8f5;
 }
 
 .nxmodeler-userpicker thead {
   color: #fff;
-  background-color: #6e8bf3;
+  background-color: #40b0f7;
+}
+
+.nxmodeler-userpicker tbody tr .btn.btn-default {
+  color: #0084ff;
+  background-color: #fff;
+  border-color: #0084ff;
 }
 
 .nxmodeler-userpicker tbody tr:hover {
-  color: #fff;
-  background-color: #a7a1f7;
+  background-color: #f5f5f5;
 }
 
-.nxmodeler-userpicker tbody tr:hover .btn-default {
-  color: #fff;
-  background-color: #a7a1f7;
-  border-color: #fff;
+.nxmodeler-userpicker tbody tr .btn.btn-default:hover {
+  color: #ff4e00;
+  border-color: #ff4e00;
 }
 
-.nxmodeler-userpicker tbody > tr .btn-default:hover {
-  background-color: #6e8bf3;
+.nxmodeler-userpicker .btn.nxmodeler-userpicker-search {
+  color: #ff6158;
+  border-color: #ff6158;
+}
+
+.nxmodeler-userpicker .btn.nxmodeler-userpicker-search:hover {
+  color: #fff;
+  background-color: #ff6158;
 }
 
 .nxmodeler-userpicker .ztree a.curSelectedNode {
   color: #fff;
-  background-color: #a7a1f7;
-  border-color: #5e7be3;
+  background-color: #40b0f7;
+  border-color: #38a8f5;
+}
+
+.nxmodeler-userpicker .nxmodeler-userpicker-select .btn.btn-up {
+  color: #00cecf;
+  border-color: transparent;
+}
+
+.nxmodeler-userpicker .nxmodeler-userpicker-select .btn.btn-down {
+  color: #3eb1f6;
+  border-color: transparent;
+}
+
+.nxmodeler-userpicker .nxmodeler-userpicker-select .btn.btn-minus {
+  color: #ffb835;
+  border-color: transparent;
+}
+
+.nxmodeler-userpicker .nxmodeler-userpicker-select .btn.btn-default:hover {
+  color: #ff6158;
+  border-color: transparent;
 }
