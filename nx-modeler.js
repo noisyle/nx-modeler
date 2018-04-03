@@ -716,7 +716,7 @@
       callback(table_data);
     },
     container_template: '<div class="nxmodeler-container">'+
-    '  <nav class="navbar navbar-default">'+
+    '  <nav class="navbar navbar-default nxmodeler-toolbar">'+
     '    <div class="container-fluid">'+
     '      <div class="collapse navbar-collapse">'+
     '        <form class="navbar-form navbar-right">'+
@@ -850,11 +850,11 @@
       }
 
       var $userpicker = $(opts.userpicker_template);
-      $wrap.append($userpicker);
+      $('body').append($userpicker);
       var $saveDialog = $(opts.save_dialog_template);
-      $wrap.append($saveDialog);
+      $('body').append($saveDialog);
       var $alert = $(opts.alert_template);
-      $wrap.append($alert);
+      $('body').append($alert);
 
       var zTreeObj, table;
       // 部门树
