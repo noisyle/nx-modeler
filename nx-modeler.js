@@ -247,8 +247,6 @@
 
       // 初始化节点坐标、层级
       this.nodes.forEach(function(node){node.x = 0; node.y = 0; node.level = 0; node.visited = false;});
-      // 初始化连线的权重
-      this.lines.forEach(function(line){line.weight = 1; line.visited = false;});
 
       // 广度优先遍历，求节点到根的最大深度
       var nodeStack = [this.root];
@@ -256,7 +254,7 @@
         var curNode = nodeStack.shift();
         curNode.outgoing.forEach(function(line){
           var nextNode = line.target;
-          if (nextNode.level < curNode.level + 1) {
+          if (nextNode.level <= curNode.level) {
             nextNode.level = curNode.level + 1;
           }
           nodeStack.push(nextNode);
@@ -272,8 +270,10 @@
       // 深度优先遍历，统计分支权重
       var pathStack = [];
       function computeWeight (curNode) {
+        if (curNode.visited) return;
         if (curNode.gatewayType === 'fork') {
           // 分支节点
+          var curWeight = realWeight = curNode.outgoing.length - 1;
           // 从栈顶开始进行回溯，对祖先分支进行提权
           var jump_count = 0;
           for (var i = pathStack.length - 1; i >= 0; i--) {
@@ -282,9 +282,18 @@
               // 分支节点
               if (jump_count === 0) {
                 // 将栈中尚未闭合的分支（当前节点的祖先）权重按照当前节点权重-1进行提升（因为祖先节点已经为当前节点所在分支计了1权重）
-                path.weight += (curNode.outgoing.length - 1);
+                path.weight += realWeight;
+                // 将当前节点子树宽度作为新的curWeight，继续遍历父树
+                curWeight = realWeight = curNode.outgoing.length - 1;
                 // console.debug('深度优先遍历1, forkId: %s, parent: %s, weight: %s', curNode.resourceId, path.target.name, path.weight);
+                // console.debug('深度优先遍历1, curWeight: %s, realWeight: %s', curWeight, realWeight);
               } else {
+                // 遇到栈中已经闭合的分支，取权重大者作为当前子树的权重
+                if (path.weight < curWeight) {
+                  realWeight = curWeight - path.weight;
+                } else {
+                  realWeight = 0;
+                }
                 jump_count -= 1;
               }
             } else {
@@ -294,6 +303,7 @@
           }
         }
         curNode.outgoing.forEach(function(line){
+          line.weight = 1; // 初始化路径权重
           if (curNode.gatewayType === 'fork' || curNode.gatewayType === 'join') {
             pathStack.push(line);
           }
@@ -302,6 +312,7 @@
             pathStack.pop();
           }
         });
+        curNode.visited = true;
       }
       computeWeight(this.root);
 
