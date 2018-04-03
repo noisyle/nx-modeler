@@ -650,7 +650,7 @@
     config: {
       prefix: 'nx_',//对应html里节点的ID前缀
       distance: {x: 120, y: 120},//对应html里节点之间的间隔
-      node: {w: 60, h: 60},//对应html里节点的宽度和高度
+      node: {w: 56, h: 56},//对应html里节点的宽度和高度
       padding: 40,//对应html里节点的宽度和高度
       task_class: 'nxmodeler-usertask',
       task_icon_class: 'glyphicon-user',
