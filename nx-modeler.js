@@ -884,13 +884,14 @@
 
       // 人员列表
       table = $('.nxmodeler-userpicker-table').DataTable({
-        language: {url: "lib/DataTables-Bootstrap3/1.10.16/i18n/Chinese.json"},
+        language: DataTablesLanguage,
         select: false,
         paging: false,
         searching: false,
         sorting: false,
         info: false,
         scrollY: 230,
+        scrollX: true,
         scrollCollapse: true,
         columns: [
           { data: 'DISPLAYNAME' },
@@ -906,17 +907,24 @@
               return '<div class="btn-group btn-group-xs"><button type="button" class="btn btn-default btn-plus"><span class="glyphicon glyphicon-plus"></span></button></div>';
             }
           }
-        ]
+        ],
+        fixedColumns: {
+          leftColumns: 1,
+          rightColumns: 1
+        }
       });
 
       // 人员选取列表
       var select_table = $('.nxmodeler-userpicker-select').DataTable({
-        language: {url: "lib/DataTables-Bootstrap3/1.10.16/i18n/Chinese.json"},
+        language: DataTablesLanguage,
         select: false,
         paging: false,
         searching: false,
         sorting: false,
         info: false,
+        scrollY: 490,
+        scrollX: true,
+        scrollCollapse: true,
         columns: [
           { data: 'DISPLAYNAME' },
           { data: 'USERNAME' },
@@ -931,7 +939,11 @@
               return '<div class="btn-group btn-group-xs"><button type="button" class="btn btn-default btn-up"><span class="glyphicon glyphicon-arrow-up"></span></button><button type="button" class="btn btn-default btn-down"><span class="glyphicon glyphicon-arrow-down"></span></button><button type="button" class="btn btn-default btn-minus"><span class="glyphicon glyphicon-minus"></span></button></div>';
             }
           }
-        ]
+        ],
+        fixedColumns: {
+          leftColumns: 1,
+          rightColumns: 1
+        }
       });
 
       data = new Modeler(this, opts);
@@ -1041,7 +1053,7 @@
             selected.push(row);
             select_table.clear();
             select_table.rows.add(selected);
-            select_table.columns.adjust().draw();
+            select_table.columns.adjust().draw().fixedColumns().relayout();
           }
         }
       });
@@ -1163,5 +1175,30 @@
   };
 
   $.fn.nxmodeler.defaults = defaults;
+
+  var DataTablesLanguage = {
+    "sProcessing":   "处理中...",
+    "sLengthMenu":   "显示 _MENU_ 项结果",
+    "sZeroRecords":  "没有匹配结果",
+    "sInfo":         "显示第 _START_ 至 _END_ 项结果，共 _TOTAL_ 项",
+    "sInfoEmpty":    "显示第 0 至 0 项结果，共 0 项",
+    "sInfoFiltered": "(由 _MAX_ 项结果过滤)",
+    "sInfoPostFix":  "",
+    "sSearch":       "搜索:",
+    "sUrl":          "",
+    "sEmptyTable":     "表中数据为空",
+    "sLoadingRecords": "载入中...",
+    "sInfoThousands":  ",",
+    "oPaginate": {
+      "sFirst":    "首页",
+      "sPrevious": "上页",
+      "sNext":     "下页",
+      "sLast":     "末页"
+    },
+    "oAria": {
+      "sSortAscending":  ": 以升序排列此列",
+      "sSortDescending": ": 以降序排列此列"
+    }
+  };
 
 })(jQuery);

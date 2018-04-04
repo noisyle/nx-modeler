@@ -52,6 +52,10 @@
   font-weight: 600;
 }
 
+.nxmodeler-userpicker .nxmodeler-userpicker-select .btn-group {
+  width: 70px;
+}
+
 .ui-widget {
   font-size: .8em;
 }
@@ -85,7 +89,7 @@
   border-color: #38a8f5;
 }
 
-.nxmodeler-userpicker thead {
+.nxmodeler-userpicker thead tr {
   color: #fff;
   background-color: #40b0f7;
 }

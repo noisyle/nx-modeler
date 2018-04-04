@@ -2,9 +2,10 @@
 <html>
 <head>
   <title>nxmodeler-demo</title>
-  <link rel="stylesheet" type="text/css" href="lib/jquery-ui/css/base/jquery-ui-1.10.4.custom.css" />
-  <link rel="stylesheet" type="text/css" href="lib/bootstrap/3.3.7/css/bootstrap.css" />
-  <link rel="stylesheet" type="text/css" href="lib/DataTables-Bootstrap3/1.10.16/datatables.css" />
+  <link rel="stylesheet" type="text/css" href="lib/jquery-ui/css/base/jquery-ui-1.10.4.custom.min.css" />
+  <link rel="stylesheet" type="text/css" href="lib/bootstrap/3.3.7/css/bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="lib/DataTables-Bootstrap3/1.10.16/datatables.min.css" />
+  <link rel="stylesheet" type="text/css" href="lib/FixedColumns-3.2.4/css/fixedColumns.bootstrap.min.css" />
   <link rel="stylesheet" type="text/css" href="lib/ztree/zTreeStyle/zTreeStyle.css" />
   <link rel="stylesheet" type="text/css" href="nx-modeler.css" />
 </head>
@@ -13,11 +14,12 @@
   <div id="modeler"></div>
 
   <script src="lib/jquery-ui/js/jquery-1.10.2.js"></script>
-  <script src="lib/jquery-ui/js/jquery-ui-1.10.4.custom.js"></script>
+  <script src="lib/jquery-ui/js/jquery-ui-1.10.4.custom.min.js"></script>
   <script src="lib/jquery-ui-contextmenu-1.18.1/jquery.ui-contextmenu.js"></script>
-  <script src="lib/bootstrap/3.3.7/js/bootstrap.js"></script>
-  <script src="lib/ztree/jquery.ztree.core-3.5.js"></script>
-  <script src="lib/DataTables-Bootstrap3/1.10.16/datatables.js"></script>
+  <script src="lib/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <script src="lib/DataTables-Bootstrap3/1.10.16/datatables.min.js"></script>
+  <script src="lib/FixedColumns-3.2.4/js/dataTables.fixedColumns.min.js"></script>
+  <script src="lib/ztree/jquery.ztree.core-3.5.min.js"></script>
   <script src="lib/jsplumb.js"></script>
   <!-- <script src="example_model.js"></script> -->
   <script src="nx-modeler.js"></script>
@@ -71,7 +73,7 @@
         queryTable: function(param, callback){
           console.debug('queryTable - param: %O', param);
           var table_data = [
-            {DISPLAYNAME: "俞新海", USERNAME: "yuxinhai", ID: 1049, PARTYNAME: "信息部-java开发组"},
+            {DISPLAYNAME: "俞新海", USERNAME: "yuxinhai", ID: 1049, PARTYNAME: "信息部-java开发组aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},
             {DISPLAYNAME: "冯宇鹏", USERNAME: "fengyupeng", ID: 1071, PARTYNAME: "信息部-java开发组"},
             {DISPLAYNAME: "庞泓", USERNAME: "panghong", ID: 1072, PARTYNAME: "信息部-java开发组"},
             {DISPLAYNAME: "李亮", USERNAME: "liliang", ID: 1069, PARTYNAME: "信息部-java开发组"},
@@ -81,8 +83,17 @@
             {DISPLAYNAME: "王跃", USERNAME: "wangyue", ID: 817031819214848, PARTYNAME: "信息部-java开发组"},
             {DISPLAYNAME: "郭宏波", USERNAME: "guohongbo", ID: 829431494967296, PARTYNAME: "信息部-java开发组"},
             {DISPLAYNAME: "马磊", USERNAME: "malei", ID: 1068, PARTYNAME: "信息部-java开发组"},
-            {DISPLAYNAME: "马辰", USERNAME: "machen", ID: 1070, PARTYNAME: "信息部-java开发组"}
-          ];
+            {DISPLAYNAME: "马辰", USERNAME: "machen", ID: 1070, PARTYNAME: "信息部-java开发组"},
+            {DISPLAYNAME: "曹丙营", USERNAME: "caobingying", ID: 1073, PARTYNAME: "信息部-php开发组"},
+            {DISPLAYNAME: "陈军磊", USERNAME: "chenjunlei", ID: 1076, PARTYNAME: "信息部-php开发组"},
+            {DISPLAYNAME: "程汝雄", USERNAME: "chenruxiong", ID: 1078, PARTYNAME: "信息部-php开发组"},
+            {DISPLAYNAME: "郭朝鹤", USERNAME: "guozhaohe", ID: 1050, PARTYNAME: "信息部-php开发组"},
+            {DISPLAYNAME: "霍秋燕", USERNAME: "huoqiuyan", ID: 1075, PARTYNAME: "信息部-php开发组"},
+            {DISPLAYNAME: "景汝浩", USERNAME: "jingruhao", ID: 1077, PARTYNAME: "信息部-php开发组"},
+            {DISPLAYNAME: "李芳", USERNAME: "lifang", ID: 995052881559552, PARTYNAME: "信息部-php开发组"},
+            {DISPLAYNAME: "司丹", USERNAME: "sidan", ID: 1074, PARTYNAME: "信息部-php开发组"},
+            {DISPLAYNAME: "赵丹宁", USERNAME: "zhaodanning", ID: 766006916988928, PARTYNAME: "信息部-php开发组"}
+          ]
           callback(table_data);
         }
       });
