@@ -516,8 +516,14 @@
         ],
         Container: this.el.id //画布容器
       });
+      
+      jsPlumb.bind("click", function(connection, originalEvent) {
+        console.log("connection clicked: ", connection);
+      });
     },
     _destroy: function () {
+      jsPlumb.unbind("click");
+
       this.instance = null;
       $(this.el).html('');
     },
