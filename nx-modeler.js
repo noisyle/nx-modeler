@@ -135,7 +135,7 @@
         'properties': {
           'name': '',
           'defaultflow': 'false',
-          'condition': this.condition,
+          'condition': this.condition
         },
         'stencil': {
           'id': 'SequenceFlow'
@@ -445,7 +445,8 @@
           uuids: [line.source.resourceId +'-'+ anchors[0], line.target.resourceId +'-'+ anchors[1]],
           editable: config.editable,
           parameters: {
-            resourceId: line.resourceId
+            resourceId: line.resourceId,
+            fork: line.source.gatewayType === 'fork'
           }
         });
       });
@@ -524,10 +525,11 @@
       
       var that = this;
       jsPlumb.bind("click", function(conn, originalEvent) {
-        console.debug("connection clicked: %O, resourceId: %s", conn, conn.getParameter('resourceId'));
+        console.debug("connection clicked: %O, parameter: %O", conn, conn.getParameters());
         var lineId = conn.getParameter('resourceId');
         var line = that.lineMap[lineId];
         line.condition = line.condition ? line.condition + 1 : 1;
+        conn.setLabel(line.condition+'');
         console.debug(line.condition);
       });
     },
