@@ -30,7 +30,7 @@
 
   var Node = function (nodeData, opt) {
     this.opt = opt;
-    this.resourceId = _uuid();
+    this.resourceId = nodeData.resourceId ? nodeData.resourceId : _uuid();
     this.isCommiter = nodeData.isCommiter ? nodeData.isCommiter : false;
     this.assignee = nodeData.assignee ? nodeData.assignee : '';
     this.name = nodeData.name ? nodeData.name : '';
@@ -111,9 +111,10 @@
 
   var Line = function (lineData, opt) {
     this.opt = opt;
-    this.resourceId = _uuid();
+    this.resourceId = lineData.resourceId ? lineData.resourceId : _uuid();
     this.source = lineData.source;
     this.target = lineData.target;
+    this.condition = lineData.condition ? lineData.condition : '';
   };
 
   Line.prototype = {
@@ -133,7 +134,8 @@
         'resourceId': this.resourceId,
         'properties': {
           'name': '',
-          'defaultflow': 'false'
+          'defaultflow': 'false',
+          'condition': this.condition,
         },
         'stencil': {
           'id': 'SequenceFlow'
@@ -201,31 +203,31 @@
       }
 
       // TODO Node和Line新增了一些属性，下面这段需要修改
-
+      var that = this;
       opt.model.childShapes.forEach(function(el){
         if (el.stencil.id !== 'SequenceFlow') {
-          var node = new Node({type: el.type, isCommiter: el.isCommiter, assignee: el.properties.assignee, name: el.properties.name}, opt);
-          this.nodes.push(node);
-          this.nodeMap[node.resourceId] = node;
+          var node = new Node({resourceId: el.resourceId, type: el.stencil.id, isCommiter: el.properties.isCommiter, assignee: el.properties.assignee, name: el.properties.name, gatewayType: el.properties.gatewayType}, opt);
+          that.nodes.push(node);
+          that.nodeMap[node.resourceId] = node;
         }
       });
 
       opt.model.childShapes.forEach(function(el){
         if (el.stencil.id === 'SequenceFlow') {
-          var line = new Line({source: this.nodeMap[el.source.resourceId], target: this.nodeMap[el.target.resourceId]}, opt);
-          this.lines.push(line);
-          this.lineMap[line.resourceId] = line;
+          var line = new Line({resourceId: el.resourceId, source: that.nodeMap[el.source.resourceId], target: that.nodeMap[el.target.resourceId], condition: el.properties.condition}, opt);
+          that.lines.push(line);
+          that.lineMap[line.resourceId] = line;
         }
       });
 
       opt.model.childShapes.forEach(function(el){
         if (el.stencil.id !== 'SequenceFlow') {
-          var node = this.nodeMap[el.resourceId];
+          var node = that.nodeMap[el.resourceId];
           el.incoming.forEach(function(line){
-            node.incoming.push(this.lineMap[line.resourceId]);
+            node.incoming.push(that.lineMap[line.resourceId]);
           });
           el.outgoing.forEach(function(line){
-            node.outgoing.push(this.lineMap[line.resourceId]);
+            node.outgoing.push(that.lineMap[line.resourceId]);
           });
         }
       });
@@ -517,8 +519,12 @@
         Container: this.el.id //画布容器
       });
       
-      jsPlumb.bind("click", function(connection, originalEvent) {
-        console.log("connection clicked: ", connection);
+      var that = this;
+      jsPlumb.bind("click", function(conn, originalEvent) {
+        console.debug("connection clicked: ", conn);
+        var line = that.lines.filter(function(e, i){return conn.sourceId==defaults.config.prefix+e.source.resourceId && conn.targetId==defaults.config.prefix+e.target.resourceId})[0];
+        line.condition = line.condition ? line.condition + 1 : 1;
+        console.debug(line.condition);
       });
     },
     _destroy: function () {
