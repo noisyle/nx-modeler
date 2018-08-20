@@ -443,7 +443,10 @@
 
         var connection = instance.connect({
           uuids: [line.source.resourceId +'-'+ anchors[0], line.target.resourceId +'-'+ anchors[1]],
-          editable: config.editable
+          editable: config.editable,
+          parameters: {
+            resourceId: line.resourceId
+          }
         });
       });
     },
@@ -521,8 +524,9 @@
       
       var that = this;
       jsPlumb.bind("click", function(conn, originalEvent) {
-        console.debug("connection clicked: ", conn);
-        var line = that.lines.filter(function(e, i){return conn.sourceId==defaults.config.prefix+e.source.resourceId && conn.targetId==defaults.config.prefix+e.target.resourceId})[0];
+        console.debug("connection clicked: %O, resourceId: %s", conn, conn.getParameter('resourceId'));
+        var lineId = conn.getParameter('resourceId');
+        var line = that.lineMap[lineId];
         line.condition = line.condition ? line.condition + 1 : 1;
         console.debug(line.condition);
       });
