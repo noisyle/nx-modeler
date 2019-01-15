@@ -1,14 +1,37 @@
-.nxmodeler-container > .navbar {
-  margin-bottom: 0;
-  border-color: #262e3b;
-  border-radius: 0;
+html, body {
+  height: 100%;
 }
-
-.nxmodeler-wrap {
-  width: 100%;
-  overflow: auto;
-  border: 1px solid #eee;
-  border-top: 0;
+.nxmodeler-wrapper {
+  display: grid;
+  grid-template: 50px 1fr 200px / 1fr 350px;
+  height: 100%;
+  overflow: hidden;
+}
+.nxmodeler-wrapper.right-collapse {
+  grid-template-columns: 1fr 0;
+}
+.nxmodeler-wrapper.bottom-collapse {
+  grid-template-rows: 50px 1fr 0;
+}
+.nxmodeler-top {
+  grid-row: 1;
+  grid-column: 1 / span 2;
+  border-bottom: 1px solid #888;
+}
+.nxmodeler-right {
+  grid-row: 2 / span 2;
+  grid-column: 2;
+  border-left: 1px solid #888;
+}
+.nxmodeler-bottom {
+  grid-row: 3;
+  grid-column: 1;
+  border-top: 1px solid #888;
+}
+.nxmodeler-main {
+  grid-row: 2;
+  grid-column: 1;
+  overflow: scroll;
 }
 
 .nxmodeler-canvas {

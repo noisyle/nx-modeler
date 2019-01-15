@@ -733,17 +733,17 @@
       var table_data = [];
       callback(table_data);
     },
-    container_template: '<div class="nxmodeler-container">'+
-    '  <nav class="navbar navbar-default nxmodeler-toolbar">'+
+    container_template: '<div class="nxmodeler-wrapper">'+
+    '  <div class="nxmodeler-top">'+
     '    <div class="container-fluid">'+
-    '      <div class="collapse navbar-collapse">'+
-    '        <form class="navbar-form navbar-right">'+
-    '          <button type="button" class="btn btn-primary nxmodeler-btn-save">保存</button>'+
-    '        </form>'+
-    '      </div>'+
+    '      <form class="navbar-form navbar-right">'+
+    '        <button type="button" class="btn btn-primary nxmodeler-btn-save">保存</button>'+
+    '      </form>'+
     '    </div>'+
-    '  </nav>'+
-    '  <div class="nxmodeler-wrap"></div>'+
+    '  </div>'+
+    '  <div class="nxmodeler-right"></div>'+
+    '  <div class="nxmodeler-bottom"></div>'+
+    '  <div class="nxmodeler-main"></div>'+
     '</div>',
     userpicker_template:'<div class="modal fade nxmodeler-userpicker" tabindex="-1" role="dialog">'+
     '  <div class="modal-dialog modal-lg" role="document">'+
@@ -850,8 +850,8 @@
   };
 
   $.fn.nxmodeler = function (option) {
-    var args = Array.apply(null, arguments);
-    args.shift();
+    // var args = Array.apply(null, arguments);
+    // args.shift();
     var internal_return;
     this.each(function () {
       var that = this;
@@ -863,7 +863,7 @@
 
         var $wrap = $(opts.container_template);
         $wrap.insertBefore($el);
-        $wrap.find('.nxmodeler-wrap').append($el);
+        $wrap.find('.nxmodeler-main').append($el);
         $el.addClass('nxmodeler-canvas')
       }
 
